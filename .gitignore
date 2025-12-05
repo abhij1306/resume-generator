@@ -38,5 +38,8 @@ dist-ssr
 .stylelintcache
 
 # Vite
-vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# Resume Data (Private)
+*_resume.json
+test_*.json
