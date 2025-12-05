@@ -6,8 +6,8 @@ export default function ResumePreview({ resumeData, ...props }) {
     resumeData;
 
   const Section = ({ title, children }) => (
-    <div className="mb-6">
-      <h2 className="text-h2 text-text-primary border-b border-border-light pb-1 mb-3 tracking-wide">
+    <div className="mb-8">
+      <h2 className="text-h2 text-text-primary border-b border-[rgba(0,0,0,0.08)] pb-3 mb-4 tracking-wide">
         {title}
       </h2>
       {children}
@@ -52,7 +52,7 @@ export default function ResumePreview({ resumeData, ...props }) {
                     </p>
                   </div>
                   {exp.responsibilities?.length > 0 && (
-                    <ul className="list-disc ml-5 mt-2 text-body text-text-primary space-y-1">
+                    <ul className="list-disc ml-6 mt-3 text-body text-text-primary space-y-2">
                       {exp.responsibilities
                         .filter((r) => r && typeof r === "string" && r.trim())
                         .map((resp, j) => (
@@ -87,7 +87,7 @@ export default function ResumePreview({ resumeData, ...props }) {
                     </p>
                   </div>
                   {edu.gpa && (
-                    <p className="text-text-secondary text-body mt-1">GPA: {edu.gpa}</p>
+                    <p className="text-text-secondary text-body mt-3">GPA: {edu.gpa}</p>
                   )}
                 </div>
               ))}
@@ -98,7 +98,7 @@ export default function ResumePreview({ resumeData, ...props }) {
       case "skills":
         return (skills.technical.length > 0 || skills.soft.length > 0) && (
           <Section key={id} title="Core Skills">
-            <div className="grid grid-cols-1 gap-2 text-body">
+            <div className="grid grid-cols-1 gap-3 text-body">
               {skills.technical.length > 0 && (
                 <div>
                   <span className="font-semibold text-text-primary">Technical:</span>{" "}
@@ -132,10 +132,10 @@ export default function ResumePreview({ resumeData, ...props }) {
                         </p>
                       )}
                       {project.description && (
-                        <div className="text-text-primary text-body mt-1">
+                        <div className="text-text-primary text-body mt-3">
                           {/* Handle description as separate bullets if newline chars exist */}
                           {project.description.includes('\n') ? (
-                            <ul className="list-disc ml-5 space-y-1">
+                            <ul className="list-disc ml-6 space-y-2">
                               {project.description.split('\n').filter(line => line.trim()).map((line, i) => (
                                 <li key={i}>{line}</li>
                               ))}
@@ -147,13 +147,13 @@ export default function ResumePreview({ resumeData, ...props }) {
                         </div>
                       )}
                     </div>
-  
+
                     {project.link && (
                       <a
                         href={project.link}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-accent-mint text-body hover:underline"
+                        className="text-[#9EE8C8] text-body hover:underline"
                       >
                         View →
                       </a>
@@ -172,7 +172,7 @@ export default function ResumePreview({ resumeData, ...props }) {
           if (section && section.items?.length > 0) {
             return (
               <Section key={id} title={section.title}>
-                <ul className="list-disc ml-5 text-body space-y-1 text-text-primary">
+                <ul className="list-disc ml-6 text-body space-y-2 text-text-primary">
                   {section.items.map((item, idx) => (
                     <li key={idx}>{item}</li>
                   ))}
@@ -201,7 +201,7 @@ export default function ResumePreview({ resumeData, ...props }) {
             {personal.fullName}
           </h1>
   
-          <div className="flex flex-wrap justify-center gap-4 text-sm text-text-secondary mt-3">
+          <div className="flex flex-wrap justify-center gap-4 text-body text-text-secondary mt-4">
             {personal.email && <span>{personal.email}</span>}
             {personal.phone && <span>{personal.phone}</span>}
             {personal.location && <span>{personal.location}</span>}
@@ -242,7 +242,7 @@ export default function ResumePreview({ resumeData, ...props }) {
         {/* CERTIFICATIONS (Legacy/Extra) */}
         {certifications.length > 0 && (
           <Section title="Certifications">
-            <ul className="list-disc ml-5 text-body space-y-1">
+            <ul className="list-disc ml-6 text-body space-y-2">
               {certifications.map((cert, idx) => (
                 <li key={idx}>
                   <span className="font-semibold text-text-primary">{cert.name}</span>

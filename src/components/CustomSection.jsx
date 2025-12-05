@@ -55,17 +55,17 @@ export function CustomSection({ sectionId, data, setResumeData }) {
                 <input
                     value={data.title}
                     onChange={(e) => updateTitle(e.target.value)}
-                    className="text-h1 bg-transparent border-b border-transparent hover:border-border-light focus:border-accent-mint outline-none text-text-primary w-full transition-colors"
+                    className="text-h1 bg-transparent border-b border-[rgba(0,0,0,0.08)] hover:border-[#9EE8C8] focus:border-[#9EE8C8] outline-none text-text-primary w-full transition-colors"
                 />
             </div>
 
             <div className="space-y-3">
                 {data.items.map((item, i) => (
-                    <div key={i} className="group flex items-center justify-between p-3 bg-bg-card rounded-xl border border-transparent hover:border-accent-mint/30 transition-all">
+                    <div key={i} className="group flex items-center justify-between p-4 bg-[#FFFFFF] rounded-xl border border-[rgba(0,0,0,0.08)] hover:border-[#9EE8C8] transition-all">
                         <span className="text-body font-medium text-text-primary">{item}</span>
                         <button
                             onClick={() => removeItem(i)}
-                            className="text-text-secondary hover:text-red-500 p-2 rounded-lg hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-all"
+                            className="text-text-secondary hover:text-red-500 p-2 rounded-lg hover:bg-red-50 transition-all"
                         >
                             <Trash2 className="w-4 h-4" />
                         </button>
@@ -79,11 +79,11 @@ export function CustomSection({ sectionId, data, setResumeData }) {
                     onChange={(e) => setNewItem(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && addItem()}
                     placeholder="Add item (e.g. Native Spanish)..."
-                    className="flex-1 neumorphic-input"
+                    className="flex-1 input-neumorphic"
                 />
                 <button
                     onClick={addItem}
-                    className="px-4 py-2 bg-accent-mint text-text-primary font-bold rounded-xl shadow-mint-glow hover:scale-105 active:scale-95 transition-all"
+                    className="px-6 py-3 bg-accent-mint text-text-primary font-bold rounded-xl shadow-mint-glow hover:scale-105 active:scale-95 transition-all"
                 >
                     <Plus className="w-5 h-5" />
                 </button>

@@ -109,15 +109,15 @@ export function ResponsibilityList({ items = [], onChange }) {
                     <div className="space-y-2">
                         {listItems.map((item) => (
                             <SortableItem key={item.id} id={item.id} className="items-start">
-                                <div className="relative w-full group/input flex items-center gap-2">
-                                    <div className="mt-2.5 w-1.5 h-1.5 rounded-full bg-gray-400 shrink-0" />
+                                <div className="relative w-full group/input flex items-start gap-3">
+                                    <div className="mt-3 w-2 h-2 rounded-full bg-[#9EE8C8] shrink-0 shadow-neumorphic-inset" />
                                     <textarea
                                         value={item.text}
                                         onChange={(e) => handleChange(item.id, e.target.value)}
                                         onBlur={() => handleBlur(item.id)}
                                         placeholder="Type responsibility here..."
                                         rows={1}
-                                        className="flex-1 px-0 py-2 border-none bg-transparent focus:ring-0 resize-none overflow-hidden min-h-[38px] text-body text-text-primary placeholder:text-text-secondary focus:outline-none"
+                                        className="flex-1 input-neumorphic resize-none overflow-hidden min-h-[44px]"
                                         onInput={(e) => {
                                             e.target.style.height = 'auto';
                                             e.target.style.height = e.target.scrollHeight + 'px';
@@ -133,7 +133,7 @@ export function ResponsibilityList({ items = [], onChange }) {
                                             triggerUpdate(finalItems);
                                         }}
                                         tabIndex={-1}
-                                        className="text-gray-300 hover:text-red-500 opacity-0 group-hover/input:opacity-100 transition-opacity p-2"
+                                        className="text-text-secondary hover:text-red-500 opacity-0 group-hover/input:opacity-100 transition-opacity p-2 rounded-lg hover:bg-red-50"
                                     >
                                         <X className="w-4 h-4" />
                                     </button>

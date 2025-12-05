@@ -11,10 +11,12 @@
   --bg-card: #F1F3F6;
   --text-primary: #222831;
   --text-secondary: #6B7280;
-  --accent-mint: #A6EBCF;
+  --accent-mint: #9EE8C8;
   --accent-mint-dark: #84D9B5;
-  --border-light: rgba(0, 0, 0, 0.05);
-  --border-white: rgba(255, 255, 255, 0.9);
+  --border-light: rgba(0, 0, 0, 0.08);
+  --border-white: rgba(255, 255, 255, 0.8);
+  --shadow-neumorphic: 6px 6px 14px rgba(0, 0, 0, 0.08), -4px -4px 10px rgba(255, 255, 255, 0.8);
+  --shadow-neumorphic-inset: inset 2px 2px 4px rgba(0, 0, 0, 0.06), inset -2px -2px 4px rgba(255, 255, 255, 0.8);
 }
 
 body {
@@ -47,31 +49,27 @@ body {
 /* UTILITIES */
 /* UTILITIES - Defined manually to fix Tailwind config issues */
 @layer utilities {
-  .shadow-neu-btn {
-    box-shadow: 6px 6px 12px rgba(0, 0, 0, 0.06), -6px -6px 12px rgba(255, 255, 255, 0.7);
+  .shadow-neumorphic {
+    box-shadow: 6px 6px 14px rgba(0, 0, 0, 0.08), -4px -4px 10px rgba(255, 255, 255, 0.8);
   }
 
-  .shadow-neu-card {
-    box-shadow: 6px 6px 12px rgba(0, 0, 0, 0.05), -6px -6px 12px rgba(255, 255, 255, 0.9);
-  }
-
-  .shadow-neu-input {
-    box-shadow: inset 3px 3px 6px rgba(0, 0, 0, 0.05), inset -3px -3px 6px rgba(255, 255, 255, 0.7);
+  .shadow-neumorphic-inset {
+    box-shadow: inset 2px 2px 4px rgba(0, 0, 0, 0.06), inset -2px -2px 4px rgba(255, 255, 255, 0.8);
   }
 
   .shadow-mint-glow {
-    box-shadow: 0 4px 10px rgba(166, 235, 207, 0.4);
+    box-shadow: 0 4px 12px rgba(158, 232, 200, 0.45);
   }
 
   .shadow-mint-glow-strong {
-    box-shadow: 0 8px 18px rgba(166, 235, 207, 0.6);
+    box-shadow: 0 8px 20px rgba(158, 232, 200, 0.6);
   }
 
   .shadow-preview-float {
-    box-shadow: 0px 12px 35px rgba(0, 0, 0, 0.12);
+    box-shadow: 0px 12px 40px rgba(0, 0, 0, 0.12);
   }
 
-  /* Typography Classes */
+  /* Typography Classes - Updated for larger sizes */
   .text-h1 {
     font-size: 24px;
     font-weight: 700;
@@ -85,13 +83,13 @@ body {
   }
 
   .text-body {
-    font-size: 13px;
+    font-size: 15px;
     font-weight: 400;
-    line-height: 1.5;
+    line-height: 1.6;
   }
 
   .text-label {
-    font-size: 11px;
+    font-size: 13px;
     font-weight: 600;
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -99,21 +97,21 @@ body {
   }
 
   .text-button {
-    font-size: 13px;
+    font-size: 15px;
     font-weight: 600;
     letter-spacing: 0.02em;
   }
 
-  /* Sidebar Active State */
+  /* Sidebar Active State - Updated with new mint color */
   .sidebar-active {
     background: #FFFFFF;
-    box-shadow: 6px 6px 12px rgba(0, 0, 0, 0.05), -6px -6px 12px rgba(255, 255, 255, 0.9);
-    border-left: 4px solid #A6EBCF;
+    box-shadow: 6px 6px 14px rgba(0, 0, 0, 0.08), -4px -4px 10px rgba(255, 255, 255, 0.8);
+    border-left: 4px solid #9EE8C8;
   }
 
   /* Decorative Elements */
   .decorative-blob {
-    background: #A6EBCF;
+    background: #9EE8C8;
     opacity: 0.08;
     filter: blur(120px);
   }
@@ -127,7 +125,7 @@ body {
 
 .neumorphic-button {
   @apply bg-[#FFFFFF] rounded-2xl text-[#6B7280] font-medium transition-all duration-300;
-  box-shadow: 6px 6px 12px rgba(0, 0, 0, 0.06), -6px -6px 12px rgba(255, 255, 255, 0.7);
+  box-shadow: 6px 6px 14px rgba(0, 0, 0, 0.08), -4px -4px 10px rgba(255, 255, 255, 0.8);
 }
 
 .neumorphic-button:hover {
@@ -135,42 +133,60 @@ body {
 }
 
 .neumorphic-button.active {
-  @apply border-l-4 border-[#A6EBCF] text-[#222831] bg-[#F1F3F6];
-  box-shadow: inset 3px 3px 6px rgba(0, 0, 0, 0.05), inset -3px -3px 6px rgba(255, 255, 255, 0.7);
+  @apply border-l-4 border-[#9EE8C8] text-[#222831] bg-[#F1F3F6];
+  box-shadow: inset 2px 2px 4px rgba(0, 0, 0, 0.06), inset -2px -2px 4px rgba(255, 255, 255, 0.8);
 }
 
-.adidas-card {
-  @apply bg-[#FFFFFF] rounded-[22px] border border-transparent;
-  box-shadow: 6px 6px 12px rgba(0, 0, 0, 0.05), -6px -6px 12px rgba(255, 255, 255, 0.9);
+.neumorphic-card {
+  @apply bg-[#FFFFFF] rounded-[24px] border border-transparent;
+  box-shadow: 6px 6px 14px rgba(0, 0, 0, 0.08), -4px -4px 10px rgba(255, 255, 255, 0.8);
 }
 
 .action-btn-mint {
   background: linear-gradient(135deg, var(--accent-mint), var(--accent-mint-dark));
   color: #1B1B1B;
   border-radius: 14px;
-  box-shadow: 0 4px 10px rgba(166, 235, 207, 0.4);
+  box-shadow: 0 4px 12px rgba(158, 232, 200, 0.45);
   transition: all 0.2s ease;
 }
 
 .action-btn-mint:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 18px rgba(166, 235, 207, 0.6);
+  box-shadow: 0 8px 20px rgba(158, 232, 200, 0.6);
 }
 
 .input-neumorphic {
-  background: var(--bg-primary) !important;
+  background: var(--bg-secondary) !important;
   border-radius: 12px !important;
-  padding: 10px 14px !important;
-  box-shadow: inset 3px 3px 6px var(--border-light), inset -3px -3px 6px var(--border-white) !important;
+  padding: 12px 16px !important;
+  box-shadow: inset 2px 2px 4px rgba(0, 0, 0, 0.06), inset -2px -2px 4px rgba(255, 255, 255, 0.8) !important;
   color: var(--text-primary) !important;
-  font-size: 14px !important;
-  border: 1px solid transparent !important;
+  font-size: 15px !important;
+  border: 1px solid var(--border-light) !important;
   transition: all 0.2s ease;
 }
 
 .input-neumorphic:focus {
   border-color: var(--accent-mint) !important;
-  box-shadow: inset 2px 2px 4px var(--border-light), inset -2px -2px 4px var(--border-white), 0 0 0 2px rgba(166, 235, 207, 0.3) !important;
+  box-shadow: inset 2px 2px 4px rgba(0, 0, 0, 0.06), inset -2px -2px 4px rgba(255, 255, 255, 0.8), 0 0 0 3px rgba(158, 232, 200, 0.4) !important;
+  outline: none;
+}
+
+.textarea-neumorphic {
+  background: var(--bg-secondary) !important;
+  border-radius: 14px !important;
+  padding: 12px 16px !important;
+  box-shadow: inset 2px 2px 4px rgba(0, 0, 0, 0.06), inset -2px -2px 4px rgba(255, 255, 255, 0.8) !important;
+  color: var(--text-primary) !important;
+  font-size: 15px !important;
+  border: 1px solid var(--border-light) !important;
+  transition: all 0.2s ease;
+  min-height: 120px !important;
+}
+
+.textarea-neumorphic:focus {
+  border-color: var(--accent-mint) !important;
+  box-shadow: inset 2px 2px 4px rgba(0, 0, 0, 0.06), inset -2px -2px 4px rgba(255, 255, 255, 0.8), 0 0 0 3px rgba(158, 232, 200, 0.4) !important;
   outline: none;
 }
 
@@ -214,16 +230,17 @@ body {
   animation: pulse-glow 8s ease-in-out infinite;
 }
 
-/* A4 Page Style */
+/* A4 Page Style - Updated for 360px width */
 .a4-page {
-  width: 360px; /* Reduced from 794px for better A4 ratio */
-  min-height: 510px; /* Adjusted for new width ratio */
+  width: 360px;
+  min-height: 510px;
   background: white;
   margin: 0 auto;
-  padding: 24px; /* Reduced padding for smaller width */
+  padding: 24px;
   overflow: hidden;
   position: relative;
-  box-shadow: 0px 12px 35px rgba(0, 0, 0, 0.12);
+  box-shadow: 0px 12px 40px rgba(0, 0, 0, 0.12);
+  border-radius: 16px;
 }
 
 /* Paper Texture (Noise) */
@@ -239,6 +256,44 @@ body {
 .a4-page>* {
   position: relative;
   z-index: 1;
+}
+
+/* AUTOSAVE INDICATOR */
+.autosave-indicator {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #FFFFFF;
+  border: 1px solid var(--border-light);
+  border-radius: 999px;
+  box-shadow: 6px 6px 14px rgba(0, 0, 0, 0.08), -4px -4px 10px rgba(255, 255, 255, 0.8);
+  font-size: 13px;
+  font-weight: 600;
+  color: #6B7280;
+  z-index: 10;
+}
+
+.autosave-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #9EE8C8;
+  box-shadow: 0 0 0 0 rgba(158, 232, 200, 0.7);
+  transition: all 0.3s ease;
+}
+
+.autosave-dot.saving {
+  background: #FBBF24;
+  box-shadow: 0 0 0 6px rgba(251, 191, 36, 0.2);
+}
+
+.autosave-dot.unsaved {
+  background: #EF4444;
+  box-shadow: 0 0 0 6px rgba(239, 68, 68, 0.2);
 }
 
 /* PRINT */

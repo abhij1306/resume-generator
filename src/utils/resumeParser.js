@@ -1,4 +1,46 @@
 import mammoth from 'mammoth'
+import * as pdfjsLib from 'pdfjs-dist'
+
+// Extract text from PDF
+export async function extractTextFromPDF(file) {
+    const arrayBuffer = await file.arrayBuffer()
+    const typedArray = new Uint8Array(arrayBuffer)
+    
+    try {
+        // Configure pdfjs worker for browser compatibility
+        // Use a stable CDN worker URL
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://unpkg.com/pdfjs-dist@5.4.449/build/pdf.worker.min.js'
+        
+        console.log('Using worker source:', pdfjsLib.GlobalWorkerOptions.workerSrc)
+        
+        // Load PDF with proper configuration
+        const loadingTask = pdfjsLib.getDocument({
+            data: typedArray,
+            useSystemFonts: true,
+            verbosity: 0 // Reduce console noise
+        })
+        
+        const pdf = await loadingTask.promise
+        let fullText = ''
+        
+        console.log('PDF loaded, number of pages:', pdf.numPages)
+        
+        // Extract text from each page
+        for (let i = 1; i <= pdf.numPages; i++) {
+            console.log('Processing page', i)
+            const page = await pdf.getPage(i)
+            const textContent = await page.getTextContent()
+            const pageText = textContent.items.map(item => item.str).join(' ')
+            fullText += pageText + '\n\n'
+        }
+        
+        console.log('PDF text extraction complete, total length:', fullText.length)
+        return fullText
+    } catch (error) {
+        console.error('PDF parsing error:', error)
+        throw new Error('Failed to parse PDF file. Please try a different PDF or use DOCX/TXT format.')
+    }
+}
 
 // Extract text from DOCX
 export async function extractTextFromDOCX(file) {
@@ -191,16 +233,23 @@ export async function extractResumeFromFile(file) {
     const fileName = file.name.toLowerCase()
 
     try {
+        console.log('Extracting resume from file:', fileName, fileType)
+        
         if (fileType === 'application/pdf' || fileName.endsWith('.pdf')) {
-            throw new Error('PDF upload is currently unavailable due to browser compatibility issues.\n\nPlease use one of these alternatives:\n1. Upload your resume as DOCX or TXT\n2. Use the manual form to enter your information\n3. Download the generated PDF resume which uses proper formatting')
+            console.log('Processing PDF file...')
+            text = await extractTextFromPDF(file)
+            console.log('PDF text extracted, length:', text.length)
         } else if (fileType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || fileName.endsWith('.docx')) {
+            console.log('Processing DOCX file...')
             text = await extractTextFromDOCX(file)
         } else if (fileType === 'text/plain' || fileName.endsWith('.txt')) {
+            console.log('Processing TXT file...')
             text = await extractTextFromTXT(file)
         } else {
-            throw new Error('Unsupported file format. Please upload DOCX or TXT files.')
+            throw new Error('Unsupported file format. Please upload PDF, DOCX, or TXT files.')
         }
 
+        console.log('Raw text preview:', text.substring(0, 200))
         return parseResumeText(text)
     } catch (error) {
         console.error('Error extracting resume:', error)

@@ -90,6 +90,7 @@ export default function App() {
 
   const fileInputRef = useRef(null);
   const resumeFileInputRef = useRef(null);
+  const pdfFileInputRef = useRef(null);
 
   // DnD Sensors
   const sensors = useSensors(
@@ -358,7 +359,8 @@ export default function App() {
       setResumeData(extracted);
       setShowImportModal(false);
     } catch (err) {
-      alert("Failed to parse resume.");
+      console.error('Resume upload error:', err);
+      alert(err.message || "Failed to parse resume. Please check the file format and try again.");
     }
 
     setIsParsingResume(false);
@@ -387,7 +389,7 @@ export default function App() {
    * RENDER
    ---------------------------*/
   return (
-    <div className="flex h-screen bg-[#F5F7FA] text-[#222831] font-sans selection:bg-[#A6EBCF] selection:text-[#222831] relative overflow-hidden">
+    <div className="flex h-screen bg-[#F5F7FA] text-[#222831] font-sans selection:bg-[#9EE8C8] selection:text-[#222831] relative overflow-hidden">
 
       {/* ------------------------------------------------------------
           BACKGROUND BLOBS (Subtle/Faint)
@@ -400,12 +402,12 @@ export default function App() {
       {/* ------------------------------------------------------------
         SIDEBAR - Neumorphic Design
         ------------------------------------------------------------ */}
-      <aside className="w-72 bg-[#FFFFFF] flex flex-col z-20 relative border-r border-[rgba(0,0,0,0.05)]">
+      <aside className="w-72 bg-[#FFFFFF] flex flex-col z-20 relative border-r border-[rgba(0,0,0,0.08)]">
         {/* BRAND */}
         <div className="px-8 py-10">
           <div className="flex items-center gap-3">
             {/* Logo Icon */}
-            <div className="w-10 h-10 bg-[#FFFFFF] rounded-xl shadow-[6px_6px_12px_rgba(0,0,0,0.06),-6px_-6px_12px_rgba(255,255,255,0.7)] flex items-center justify-center text-[#222831]">
+            <div className="w-10 h-10 bg-[#FFFFFF] rounded-xl shadow-neumorphic flex items-center justify-center text-[#222831]">
               <span className="font-display font-bold text-xl">R</span>
             </div>
             <div>
@@ -422,8 +424,8 @@ export default function App() {
           <button
             onClick={() => setCurrentStep(0)}
             className={`w-full group flex items-center gap-4 px-4 py-3 rounded-2xl text-left transition-all duration-200 ${currentStep === 0
-              ? "bg-[#FFFFFF] shadow-[6px_6px_12px_rgba(0,0,0,0.05),-6px_-6px_12px_rgba(255,255,255,0.9)] border-l-4 border-[#A6EBCF] text-[#222831]"
-              : "hover:bg-[#FFFFFF] hover:shadow-[6px_6px_12px_rgba(0,0,0,0.06),-6px_-6px_12px_rgba(255,255,255,0.7)] text-[#6B7280]"
+              ? "bg-[#FFFFFF] shadow-neumorphic border-l-4 border-[#9EE8C8] text-[#222831]"
+              : "hover:bg-[#FFFFFF] hover:shadow-neumorphic text-[#6B7280]"
               }`}
           >
             <div
@@ -464,8 +466,8 @@ export default function App() {
                     <button
                       onClick={() => setCurrentStep(stepIndex)}
                       className={`w-full group flex items-center gap-4 px-4 py-3 rounded-2xl text-left transition-all duration-200 ${active
-                        ? "bg-[#FFFFFF] shadow-[6px_6px_12px_rgba(0,0,0,0.05),-6px_-6px_12px_rgba(255,255,255,0.9)] border-l-4 border-[#A6EBCF] text-[#222831]"
-                        : "hover:bg-[#FFFFFF] hover:shadow-[6px_6px_12px_rgba(0,0,0,0.06),-6px_-6px_12px_rgba(255,255,255,0.7)] text-[#6B7280]"
+                        ? "bg-[#FFFFFF] shadow-neumorphic border-l-4 border-[#9EE8C8] text-[#222831]"
+                        : "hover:bg-[#FFFFFF] hover:shadow-neumorphic text-[#6B7280]"
                         }`}
                     >
                       <div
@@ -510,16 +512,16 @@ export default function App() {
                 setCurrentStep(sectionOrder.length + 1); // Select the new section
               }
             }}
-            className="mt-2 mx-auto flex items-center gap-2 px-4 py-2 text-xs font-bold text-[#A6EBCF] border border-[rgba(166,235,207,0.3)] rounded-xl hover:bg-[#A6EBCF] hover:text-[#222831] transition-all uppercase tracking-wider opacity-80 hover:opacity-100"
+            className="mt-2 mx-auto flex items-center gap-2 px-4 py-2 text-xs font-bold text-[#9EE8C8] border border-[rgba(158,232,200,0.3)] rounded-xl hover:bg-[#9EE8C8] hover:text-[#222831] transition-all uppercase tracking-wider opacity-80 hover:opacity-100"
           >
             <Plus className="w-3 h-3" /> Add Section
           </button>
         </nav>
 
-        <div className="p-6 border-t border-[rgba(0,0,0,0.05)] mx-4">
+        <div className="p-6 border-t border-[rgba(0,0,0,0.08)] mx-4">
           <button
             onClick={() => setShowImportModal(true)}
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-[#FFFFFF] text-[#6B7280] text-xs font-semibold rounded-xl shadow-[6px_6px_12px_rgba(0,0,0,0.06),-6px_-6px_12px_rgba(255,255,255,0.7)] hover:text-[#222831] hover:scale-[1.02] transition-all"
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-[#FFFFFF] text-[#6B7280] text-xs font-semibold rounded-xl shadow-neumorphic hover:text-[#222831] hover:scale-[1.02] transition-all"
           >
             <Upload className="w-4 h-4" />
             IMPORT / EXPORT
@@ -537,7 +539,7 @@ export default function App() {
           <div className="max-w-4xl mx-auto pb-32">
 
             {/* Container - Neumorphic Card */}
-            <div className="bg-[#FFFFFF] rounded-[22px] shadow-[6px_6px_12px_rgba(0,0,0,0.05),-6px_-6px_12px_rgba(255,255,255,0.9)] p-8 lg:p-12 animate-slide-up relative overflow-hidden">
+            <div className="bg-[#FFFFFF] rounded-[24px] shadow-neumorphic p-8 lg:p-12 animate-slide-up relative overflow-hidden">
               {/* Decorative Gradient Blob inside card */}
               <div className="absolute top-0 right-0 w-64 h-64 bg-[#A6EBCF] opacity-[0.1] blur-[80px] rounded-full pointer-events-none"></div>
 
@@ -571,13 +573,13 @@ export default function App() {
         </main>
 
         {/* RIGHT COLUMN: PREVIEW - Narrower A4 Frame */}
-        <aside className="w-[360px] bg-[#F5F7FA] border-l border-[rgba(0,0,0,0.05)] flex flex-col relative h-full shrink-0 shadow-[0px_12px_35px_rgba(0,0,0,0.12)] z-30">
+        <aside className="w-[360px] bg-[#F5F7FA] border-l border-[rgba(0,0,0,0.08)] flex flex-col relative h-full shrink-0 shadow-preview-float z-30">
 
           {/* Top Bar */}
           <div className="absolute top-4 right-4 z-30 flex gap-2">
             <button
               onClick={() => setIsFullScreen(true)}
-              className="bg-[#FFFFFF] text-[#6B7280] p-2 rounded-xl hover:text-[#222831] hover:shadow-[6px_6px_12px_rgba(0,0,0,0.06),-6px_-6px_12px_rgba(255,255,255,0.7)] transition-all"
+              className="bg-[#FFFFFF] text-[#6B7280] p-2 rounded-xl hover:text-[#222831] hover:shadow-neumorphic transition-all"
               title="Full Screen"
             >
               <Maximize className="w-4 h-4" />
@@ -587,7 +589,7 @@ export default function App() {
           {/* Scrollable Preview Area */}
           <div className="flex-1 overflow-y-auto p-6 custom-scrollbar flex justify-center bg-[#F1F3F6]/50">
             {/* Preview Frame - No scaling needed since we set width to 360px */}
-            <div className="origin-top mt-8 shadow-2xl rounded-sm">
+            <div className="origin-top mt-8 shadow-preview-float rounded-sm">
               <ResumePreview
                 resumeData={resumeData}
                 sectionOrder={sectionOrder}
@@ -596,11 +598,11 @@ export default function App() {
           </div>
 
           {/* Action Bar */}
-          <div className="p-5 bg-[#FFFFFF]/80 backdrop-blur border-t border-[rgba(0,0,0,0.05)] z-20">
+          <div className="p-5 bg-[#FFFFFF]/80 backdrop-blur border-t border-[rgba(0,0,0,0.08)] z-20">
             <button
               disabled={!isFormValid() || isGenerating}
               onClick={handleDownloadPDF}
-              className={`w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-[13px] tracking-wide transition-all transform active:scale-95 duration-200 bg-[linear-gradient(135deg,#A6EBCF,#84D9B5)] text-[#1B1B1B] shadow-[0_4px_10px_rgba(166,235,207,0.4)] hover:shadow-[0_8px_18px_rgba(166,235,207,0.6)] ${isFormValid()
+              className={`w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-[15px] tracking-wide transition-all transform active:scale-95 duration-200 bg-[linear-gradient(135deg,#9EE8C8,#84D9B5)] text-[#1B1B1B] shadow-mint-glow hover:shadow-mint-glow-strong ${isFormValid()
                 ? "opacity-100"
                 : "opacity-50 cursor-not-allowed grayscale"
                 }`}
@@ -673,20 +675,41 @@ export default function App() {
               </div>
 
               <div className="space-y-4 relative z-10">
-                {/* 1. Upload Resume */}
+                {/* 1. Upload PDF Resume */}
                 <button
                   onClick={() => {
-                    fileInputRef.current?.click();
-                    setIsParsingResume(true);
+                    pdfFileInputRef.current?.click();
                   }}
-                  className="w-full group flex items-start gap-5 p-5 rounded-2xl bg-white/5 border border-white/5 hover:border-[#A6EBCF] hover:bg-white/10 transition-all text-left"
+                  disabled={isParsingResume}
+                  className="w-full group flex items-start gap-5 p-5 rounded-2xl bg-white/5 border border-white/5 hover:border-[#9EE8C8] hover:bg-white/10 transition-all text-left disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <div className="p-3 bg-blue-500/20 text-blue-400 rounded-xl group-hover:bg-[#A6EBCF] group-hover:text-[#222831] transition-colors">
+                  <div className="p-3 bg-red-500/20 text-red-400 rounded-xl group-hover:bg-[#9EE8C8] group-hover:text-[#222831] transition-colors">
                     <FileUp className="w-6 h-6" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-lg text-white group-hover:text-[#A6EBCF] transition-colors">Upload Resume File</h3>
-                    <p className="text-sm text-gray-400 mt-1">Auto-fill from existing PDF/Doc</p>
+                    <h3 className="font-bold text-lg text-white group-hover:text-[#9EE8C8] transition-colors">Upload PDF Resume</h3>
+                    <p className="text-sm text-gray-400 mt-1">Extract data from PDF files</p>
+                  </div>
+                  {isParsingResume && (
+                    <div className="absolute right-4 top-4">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#9EE8C8]"></div>
+                    </div>
+                  )}
+                </button>
+
+                {/* 2. Upload DOCX/TXT Resume */}
+                <button
+                  onClick={() => {
+                    resumeFileInputRef.current?.click();
+                  }}
+                  className="w-full group flex items-start gap-5 p-5 rounded-2xl bg-white/5 border border-white/5 hover:border-[#9EE8C8] hover:bg-white/10 transition-all text-left"
+                >
+                  <div className="p-3 bg-blue-500/20 text-blue-400 rounded-xl group-hover:bg-[#9EE8C8] group-hover:text-[#222831] transition-colors">
+                    <FileUp className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-lg text-white group-hover:text-[#9EE8C8] transition-colors">Upload DOCX/TXT Resume</h3>
+                    <p className="text-sm text-gray-400 mt-1">Auto-fill from DOCX or TXT files</p>
                   </div>
                 </button>
 
@@ -706,7 +729,7 @@ export default function App() {
                     <button
                       onClick={handleImportJSON}
                       disabled={!jsonInput.trim()}
-                      className="px-5 py-2 bg-[#A6EBCF] text-[#222831] font-bold rounded-lg hover:bg-teal-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="px-5 py-2 bg-[#9EE8C8] text-[#222831] font-bold rounded-lg hover:bg-teal-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Import
                     </button>
@@ -716,7 +739,7 @@ export default function App() {
                 <div className="pt-6 mt-4 border-t border-white/10 flex justify-center">
                   <button
                     onClick={handleExportJSON}
-                    className="text-sm text-gray-400 hover:text-[#A6EBCF] flex items-center gap-2 transition-colors"
+                    className="text-sm text-gray-400 hover:text-[#9EE8C8] flex items-center gap-2 transition-colors"
                   >
                     <FileJson className="w-4 h-4" />
                     Export Data as JSON
@@ -725,6 +748,20 @@ export default function App() {
               </div>
 
               {/* Hidden Input for Files */}
+              <input
+                type="file"
+                ref={pdfFileInputRef}
+                className="hidden"
+                onChange={handleResumeFileUpload}
+                accept=".pdf"
+              />
+              <input
+                type="file"
+                ref={resumeFileInputRef}
+                className="hidden"
+                onChange={handleResumeFileUpload}
+                accept=".docx,.txt"
+              />
               <input
                 type="file"
                 ref={fileInputRef}

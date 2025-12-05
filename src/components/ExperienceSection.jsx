@@ -83,7 +83,7 @@ export function ExperienceSection({ experience, setResumeData }) {
     //  CARD SUB-COMPONENT
     // ------------------------------------------------------------------
     const ExperienceCard = ({ exp, onEdit, onDelete }) => (
-        <div className="group neumorphic-card p-5 transition-all border-border-light/50 hover:border-accent-mint/30 cursor-pointer">
+        <div className="group neumorphic-card p-6 transition-all border-transparent hover:border-[rgba(158,232,200,0.3)] cursor-pointer">
             <div className="flex justify-between items-start">
                 <div className="flex gap-3 items-start">
                     <div>
@@ -98,7 +98,7 @@ export function ExperienceSection({ experience, setResumeData }) {
                         </div>
                         {/* Preview Responsibilities */}
                         {exp.responsibilities && exp.responsibilities.length > 0 && (
-                            <ul className="mt-3 text-body text-text-secondary list-disc ml-4 space-y-1 opacity-80">
+                            <ul className="mt-4 text-body text-text-secondary list-disc ml-5 space-y-2 opacity-80">
                                 {exp.responsibilities.slice(0, 2).map((r, i) => (
                                     <li key={i} className="line-clamp-1">{r}</li>
                                 ))}
@@ -108,7 +108,7 @@ export function ExperienceSection({ experience, setResumeData }) {
                     </div>
                 </div>
 
-                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button
                         onClick={(e) => { e.stopPropagation(); onEdit(exp.id); }}
                         className="p-2 text-text-secondary hover:text-accent-mint hover:bg-bg-secondary rounded-lg transition-colors"
@@ -133,7 +133,7 @@ export function ExperienceSection({ experience, setResumeData }) {
             {!editingId && (
                 <button
                     onClick={addExperience}
-                    className="w-full py-4 border-2 border-dashed border-border-light/30 rounded-2xl flex items-center justify-center gap-2 text-accent-mint font-semibold hover:bg-accent-mint/10 hover:border-accent-mint transition-all"
+                    className="w-full py-4 border-2 border-dashed border-[rgba(158,232,200,0.3)] rounded-2xl flex items-center justify-center gap-2 text-[#9EE8C8] font-semibold hover:bg-[#9EE8C8]/10 hover:border-[#9EE8C8] transition-all"
                 >
                     <Plus className="w-5 h-5" /> Add New Position
                 </button>
@@ -155,36 +155,36 @@ export function ExperienceSection({ experience, setResumeData }) {
                             <SortableItem key={exp.id} id={exp.id}>
                                 {editingId === exp.id ? (
                                     // EDIT FORM
-                                    <div className="border border-accent-mint/30 rounded-2xl p-6 bg-bg-card shadow-mint-glow">
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                    <div className="border border-[rgba(158,232,200,0.3)] rounded-2xl p-8 bg-[#F1F3F6] shadow-mint-glow">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                                             <div className="space-y-1">
                                                 <label className="text-label">Job Title</label>
                                                 <input
-                                                    className="w-full neumorphic-input focus:ring-1 focus:ring-accent-mint"
+                                                    className="w-full input-neumorphic"
                                                     value={exp.title} onChange={(e) => updateExperience(exp.id, "title", e.target.value)} placeholder="e.g. Senior Product Manager" autoFocus />
                                             </div>
                                             <div className="space-y-1">
                                                 <label className="text-label">Company</label>
                                                 <input
-                                                    className="w-full neumorphic-input focus:ring-1 focus:ring-accent-mint"
+                                                    className="w-full input-neumorphic"
                                                     value={exp.company} onChange={(e) => updateExperience(exp.id, "company", e.target.value)} placeholder="e.g. Google" />
                                             </div>
                                             <div className="space-y-1">
                                                 <label className="text-label">Start Date</label>
                                                 <input
-                                                    className="w-full neumorphic-input focus:ring-1 focus:ring-accent-mint"
+                                                    className="w-full input-neumorphic"
                                                     value={exp.startDate} onChange={(e) => updateExperience(exp.id, "startDate", e.target.value)} placeholder="e.g. June 2020" />
                                             </div>
                                             <div className="space-y-1">
                                                 <label className="text-label">End Date</label>
                                                 <input
-                                                    className="w-full neumorphic-input focus:ring-1 focus:ring-accent-mint"
+                                                    className="w-full input-neumorphic"
                                                     value={exp.endDate} onChange={(e) => updateExperience(exp.id, "endDate", e.target.value)} placeholder="e.g. Present" />
                                             </div>
                                             <div className="col-span-2 space-y-1">
                                                 <label className="text-label">Location</label>
                                                 <input
-                                                    className="w-full neumorphic-input focus:ring-1 focus:ring-accent-mint"
+                                                    className="w-full input-neumorphic"
                                                     value={exp.location} onChange={(e) => updateExperience(exp.id, "location", e.target.value)} placeholder="e.g. New York, NY" />
                                             </div>
                                         </div>
@@ -193,21 +193,21 @@ export function ExperienceSection({ experience, setResumeData }) {
                                             <label className="text-label">Responsibilities</label>
                                             <p className="text-body text-text-secondary mb-1">Enter each responsibility on a new line.</p>
                                             <textarea
-                                                className="w-full neumorphic-input focus:ring-1 focus:ring-accent-mint min-h-[120px] resize-y text-body"
+                                                className="w-full textarea-neumorphic resize-y"
                                                 value={Array.isArray(exp.responsibilities) ? exp.responsibilities.join('\n') : exp.responsibilities}
                                                 onChange={(e) => updateExperience(exp.id, "responsibilities", e.target.value.split('\n'))}
                                                 placeholder="• Lead development of feature X...&#10;• Optimized database queries..."
                                             />
                                         </div>
 
-                                        <div className="mt-6 flex justify-end gap-3 pt-4 border-t border-border-light/50">
+                                        <div className="mt-8 flex justify-end gap-4 pt-6 border-t border-[rgba(0,0,0,0.08)]">
                                             <button onClick={() => removeExperience(exp.id)} className="px-4 py-2 text-red-400 hover:text-red-300 rounded-lg text-body font-medium transition-colors">Delete</button>
                                             <button onClick={() => setEditingId(null)} className="px-6 py-2 bg-accent-mint text-text-primary rounded-xl shadow-mint-glow hover:bg-teal-400 font-bold transition-all">Done</button>
                                         </div>
                                     </div>
                                 ) : (
                                     // PREVIEW CARD
-                                    <div className="group neumorphic-card p-5 cursor-pointer hover:border-accent-mint/30 transition-all border border-transparent"
+                                    <div className="group neumorphic-card p-6 cursor-pointer hover:border-[rgba(158,232,200,0.3)] transition-all border border-transparent"
                                         onClick={() => setEditingId(exp.id)} // Click card to edit
                                     >
                                         <div className="flex justify-between items-start">
@@ -224,7 +224,7 @@ export function ExperienceSection({ experience, setResumeData }) {
                                                     </div>
 
                                                     {exp.responsibilities && exp.responsibilities.length > 0 && (
-                                                        <ul className="mt-3 text-body text-text-secondary list-disc ml-4 space-y-1 opacity-80">
+                                                        <ul className="mt-4 text-body text-text-secondary list-disc ml-5 space-y-2 opacity-80">
                                                             {exp.responsibilities.slice(0, 2).map((r, i) => (
                                                                 <li key={i} className="line-clamp-1">{r}</li>
                                                             ))}
@@ -234,7 +234,7 @@ export function ExperienceSection({ experience, setResumeData }) {
                                                 </div>
                                             </div>
 
-                                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                                 <button
                                                     onClick={(e) => { e.stopPropagation(); setEditingId(exp.id); }}
                                                     className="p-2 text-text-secondary hover:text-accent-mint hover:bg-bg-secondary rounded-lg transition-colors"

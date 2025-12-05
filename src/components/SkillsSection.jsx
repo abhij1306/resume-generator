@@ -51,22 +51,22 @@ export function SkillsSection({ skills, setResumeData }) {
     };
 
     const renderSkillInput = (title, category, items) => (
-        <div className="neumorphic-card p-6 lg:p-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div className="neumorphic-card p-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <h4 className="text-h2 text-text-primary mb-4 flex items-center gap-2">
                 {title}
-                <span className="text-xs font-normal text-text-secondary bg-bg-card px-2 py-1 rounded-md">Type & Press Enter</span>
+                <span className="text-xs font-normal text-text-secondary bg-[#F1F3F6] px-3 py-1.5 rounded-lg">Type & Press Enter</span>
             </h4>
 
-            <div className="flex flex-wrap gap-2 p-3 bg-bg-card rounded-xl border border-transparent shadow-neu-input focus-within:border-accent-mint focus-within:bg-bg-secondary transition-all min-h-[60px]">
+            <div className="flex flex-wrap gap-3 p-4 bg-[#F1F3F6] rounded-xl border border-[rgba(0,0,0,0.08)] shadow-neumorphic-inset focus-within:border-[#9EE8C8] focus-within:bg-[#FFFFFF] transition-all min-h-[70px]">
                 {items.map((skill, i) => (
                     <div
                         key={i}
-                        className="group flex items-center gap-1.5 px-3 py-1.5 bg-bg-secondary text-text-primary rounded-lg text-body font-medium shadow-sm border border-border-light/50 hover:border-accent-mint/50 transition-all animate-in zoom-in-50 duration-200"
+                        className="group flex items-center gap-2 px-4 py-2 bg-[#FFFFFF] text-text-primary rounded-xl text-body font-medium shadow-neumorphic border border-[rgba(0,0,0,0.08)] hover:border-[#9EE8C8] transition-all animate-in zoom-in-50 duration-200"
                     >
                         <span>{skill}</span>
                         <button
                             onClick={() => removeSkill(category, i)}
-                            className="text-text-secondary hover:text-red-500 p-0.5 rounded-md hover:bg-red-50"
+                            className="text-text-secondary hover:text-red-500 p-1.5 rounded-lg hover:bg-red-50 transition-all"
                         >
                             <X className="w-3 h-3" />
                         </button>
@@ -78,7 +78,7 @@ export function SkillsSection({ skills, setResumeData }) {
                     onChange={(e) => handleInputChange(category, e.target.value)}
                     onKeyDown={(e) => handleKeyDown(e, category)}
                     placeholder={items.length === 0 ? `Add ${title.toLowerCase()} (e.g. React, Leadership)...` : ""}
-                    className="flex-1 min-w-[120px] bg-transparent outline-none text-body py-1.5 px-1 text-text-primary placeholder:text-text-secondary"
+                    className="flex-1 min-w-[120px] bg-transparent outline-none text-body py-2 px-2 text-text-primary placeholder:text-text-secondary"
                 />
             </div>
         </div>

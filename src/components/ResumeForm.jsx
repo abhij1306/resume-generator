@@ -7,23 +7,23 @@ import { SkillsSection } from "./SkillsSection";
  * UI HELPER COMPONENTS
  -----------------------------*/
 const Input = ({ label, ...props }) => (
-  <div className="space-y-2">
+  <div className="space-y-3">
     {label && (
       <label className="text-label">{label}</label>
     )}
     <input
       {...props}
-      className="w-full neumorphic-input focus:ring-1 focus:ring-accent-mint"
+      className="w-full input-neumorphic"
     />
   </div>
 );
 
 const TextArea = ({ label, ...props }) => (
-  <div className="space-y-2">
+  <div className="space-y-3">
     <label className="text-label">{label}</label>
     <textarea
       {...props}
-      className="w-full neumorphic-input focus:ring-1 focus:ring-accent-mint resize-none"
+      className="w-full textarea-neumorphic resize-none"
     />
   </div>
 );
@@ -80,8 +80,14 @@ export default function ResumeForm({
    ----------------------------------------------------------------*/
   if (activeSection === "personal")
     return (
-      <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
+        {/* Autosave Status Indicator */}
+        <div className="autosave-indicator">
+          <div className="autosave-dot"></div>
+          <span>Saved</span>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Input
             label="Full Name *"
             value={resumeData.personal.fullName}
@@ -121,7 +127,6 @@ export default function ResumeForm({
 
         <TextArea
           label="Professional Summary"
-          rows="4"
           value={resumeData.personal.summary}
           onChange={(e) => updatePersonal("summary", e.target.value)}
         />
@@ -153,7 +158,7 @@ export default function ResumeForm({
    ----------------------------------------------------------------*/
   if (activeSection === "education")
     return (
-      <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+      <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
         <div className="flex justify-between items-center">
           <h3 className="text-h2 text-text-primary">Education</h3>
 
@@ -178,7 +183,7 @@ export default function ResumeForm({
         {resumeData.education.map((edu, i) => (
           <div
             key={i}
-            className="p-6 border border-border-light/50 rounded-2xl bg-bg-card hover:bg-bg-secondary transition-colors space-y-4"
+            className="p-8 neumorphic-card space-y-6"
           >
             <div className="flex justify-between items-center">
               <h4 className="text-h2 text-text-primary">
@@ -192,7 +197,7 @@ export default function ResumeForm({
               </button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Input
                 label="Degree"
                 value={edu.degree}
@@ -245,9 +250,9 @@ export default function ResumeForm({
         ))}
 
         {resumeData.education.length === 0 && (
-          <p className="text-center text-text-secondary">
+          <div className="text-center py-8 text-text-secondary">
             No education added yet.
-          </p>
+          </div>
         )}
       </div>
     );

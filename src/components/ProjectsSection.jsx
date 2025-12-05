@@ -80,7 +80,7 @@ export function ProjectsSection({ projects, setResumeData }) {
     //  CARD SUB-COMPONENT
     // ------------------------------------------------------------------
     const ProjectCard = ({ proj, onEdit, onDelete }) => (
-        <div className="group neumorphic-card p-5 transition-all border-border-light/50 hover:border-accent-mint/30 cursor-pointer">
+        <div className="group neumorphic-card p-6 transition-all border-transparent hover:border-[rgba(158,232,200,0.3)] cursor-pointer">
             <div className="flex justify-between items-start">
                 <div className="flex-1">
                     <h4 className="font-bold text-text-primary text-body">
@@ -91,17 +91,17 @@ export function ProjectsSection({ projects, setResumeData }) {
                     </div>
                     {/* Preview Description */}
                     {proj.description && (
-                        <div className="mt-3 text-body text-text-secondary ml-4 opacity-80" style={{ whiteSpace: 'pre-line' }}>
+                        <div className="mt-4 text-body text-text-secondary ml-5 opacity-80" style={{ whiteSpace: 'pre-line' }}>
                             {/* Just show first couple of lines if it's bulleted manually or by ResponsibilityList */}
                             {proj.description.split('\n').slice(0, 2).map((line, i) => (
                                 <div key={i} className="line-clamp-1">• {line}</div>
                             ))}
-                            {proj.description.split('\n').length > 2 && <div className="text-xs italic text-text-secondary mt-1">+ more</div>}
+                            {proj.description.split('\n').length > 2 && <div className="text-xs italic text-text-secondary mt-2">+ more</div>}
                         </div>
                     )}
                 </div>
 
-                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity ml-4">
+                <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity ml-4">
                     <button
                         onClick={(e) => { e.stopPropagation(); onEdit(proj.id); }}
                         className="p-2 text-text-secondary hover:text-accent-mint hover:bg-bg-secondary rounded-lg transition-colors"
@@ -125,7 +125,7 @@ export function ProjectsSection({ projects, setResumeData }) {
             {!editingId && (
                 <button
                     onClick={addProject}
-                    className="w-full py-4 border-2 border-dashed border-white/10 rounded-2xl flex items-center justify-center gap-2 text-edge-mint font-semibold hover:bg-edge-mint/10 hover:border-edge-mint transition-all"
+                    className="w-full py-4 border-2 border-dashed border-[rgba(158,232,200,0.3)] rounded-2xl flex items-center justify-center gap-2 text-[#9EE8C8] font-semibold hover:bg-[#9EE8C8]/10 hover:border-[#9EE8C8] transition-all"
                 >
                     <Plus className="w-5 h-5" /> Add New Project
                 </button>
@@ -145,24 +145,24 @@ export function ProjectsSection({ projects, setResumeData }) {
                             <SortableItem key={proj.id} id={proj.id}>
                                 {editingId === proj.id ? (
                                     // EDIT FORM
-                                    <div className="border border-accent-mint/30 rounded-2xl p-6 bg-bg-card shadow-mint-glow">
-                                        <div className="grid grid-cols-1 gap-4 mb-4">
+                                    <div className="border border-[rgba(158,232,200,0.3)] rounded-2xl p-8 bg-[#F1F3F6] shadow-mint-glow">
+                                        <div className="grid grid-cols-1 gap-6 mb-6">
                                             <div className="space-y-1">
                                                 <label className="text-label">Project Name</label>
                                                 <input
-                                                    className="w-full neumorphic-input focus:ring-1 focus:ring-accent-mint"
+                                                    className="w-full input-neumorphic"
                                                     value={proj.name} onChange={(e) => updateProject(proj.id, "name", e.target.value)} placeholder="e.g. Resume Builder" autoFocus />
                                             </div>
                                             <div className="space-y-1">
                                                 <label className="text-label">Technologies</label>
                                                 <input
-                                                    className="w-full neumorphic-input focus:ring-1 focus:ring-accent-mint"
+                                                    className="w-full input-neumorphic"
                                                     value={proj.technologies} onChange={(e) => updateProject(proj.id, "technologies", e.target.value)} placeholder="e.g. React, Node.js, Tailwind" />
                                             </div>
                                             <div className="space-y-1">
                                                 <label className="text-label">Link</label>
                                                 <input
-                                                    className="w-full neumorphic-input focus:ring-1 focus:ring-accent-mint"
+                                                    className="w-full input-neumorphic"
                                                     value={proj.link} onChange={(e) => updateProject(proj.id, "link", e.target.value)} placeholder="https://..." />
                                             </div>
 
@@ -170,7 +170,7 @@ export function ProjectsSection({ projects, setResumeData }) {
                                                 <label className="text-label">Description / Responsibilities</label>
                                                 <p className="text-body text-text-secondary mb-1">Enter details on new lines. They will appear as bullet points.</p>
                                                 <textarea
-                                                    className="w-full neumorphic-input focus:ring-1 focus:ring-accent-mint min-h-[120px] resize-y text-body"
+                                                    className="w-full textarea-neumorphic resize-y"
                                                     value={proj.description || ""}
                                                     onChange={(e) => updateProject(proj.id, "description", e.target.value)}
                                                     placeholder="• Built a full-stack app using...&#10;• Implemented user authentication..."
@@ -178,14 +178,14 @@ export function ProjectsSection({ projects, setResumeData }) {
                                             </div>
                                         </div>
 
-                                        <div className="mt-6 flex justify-end gap-3 pt-4 border-t border-border-light/50">
+                                        <div className="mt-8 flex justify-end gap-4 pt-6 border-t border-[rgba(0,0,0,0.08)]">
                                             <button onClick={() => removeProject(proj.id)} className="px-4 py-2 text-red-400 hover:text-red-300 rounded-lg text-body font-medium transition-colors">Delete</button>
                                             <button onClick={() => setEditingId(null)} className="px-6 py-2 bg-accent-mint text-text-primary rounded-xl shadow-mint-glow hover:bg-teal-400 font-bold transition-all">Done</button>
                                         </div>
                                     </div>
                                 ) : (
                                     // PREVIEW CARD
-                                    <div className="group neumorphic-card p-5 cursor-pointer hover:border-accent-mint/30 transition-all border border-transparent"
+                                    <div className="group neumorphic-card p-6 cursor-pointer hover:border-[rgba(158,232,200,0.3)] transition-all border border-transparent"
                                         onClick={() => setEditingId(proj.id)}
                                     >
                                         <div className="flex justify-between items-start">
@@ -198,17 +198,17 @@ export function ProjectsSection({ projects, setResumeData }) {
                                                 </div>
                                                 {/* Preview Description */}
                                                 {proj.description && (
-                                                    <div className="mt-3 text-body text-text-secondary ml-4 opacity-80" style={{ whiteSpace: 'pre-line' }}>
+                                                    <div className="mt-4 text-body text-text-secondary ml-5 opacity-80" style={{ whiteSpace: 'pre-line' }}>
                                                         {/* Just show first couple of lines */}
                                                         {proj.description.split('\n').slice(0, 2).map((line, i) => (
                                                             <div key={i} className="line-clamp-1">• {line}</div>
                                                         ))}
-                                                        {proj.description.split('\n').length > 2 && <div className="text-xs italic text-text-secondary mt-1">+ more</div>}
+                                                        {proj.description.split('\n').length > 2 && <div className="text-xs italic text-text-secondary mt-2">+ more</div>}
                                                     </div>
                                                 )}
                                             </div>
 
-                                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity ml-4">
+                                            <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity ml-4">
                                                 <button
                                                     onClick={(e) => { e.stopPropagation(); setEditingId(proj.id); }}
                                                     className="p-2 text-text-secondary hover:text-accent-mint hover:bg-bg-secondary rounded-lg transition-colors"
