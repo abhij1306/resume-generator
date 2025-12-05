@@ -13,6 +13,10 @@ import {
   Award,
   FolderOpen,
   Eye,
+  CheckCircle,
+  Linkedin,
+  FileText,
+  AlertCircle,
 } from "lucide-react";
 
 import { generateLatexStylePDF } from "./utils/pdfGenerator";
@@ -56,6 +60,23 @@ export default function App() {
   const isFormValid = () => {
     const p = resumeData.personal;
     return p.fullName.trim() && p.email.trim() && p.phone.trim();
+  };
+
+  const isStepComplete = (stepIndex) => {
+    switch (stepIndex) {
+      case 0: // Personal
+        return resumeData.personal.fullName && resumeData.personal.email;
+      case 1: // Experience
+        return resumeData.experience.length > 0;
+      case 2: // Education
+        return resumeData.education.length > 0;
+      case 3: // Skills
+        return resumeData.skills.technical.length > 0 || resumeData.skills.soft.length > 0;
+      case 4: // Projects
+        return resumeData.projects.length > 0;
+      default:
+        return false;
+    }
   };
 
   /** --------------------------
@@ -273,52 +294,79 @@ export default function App() {
       {/* ------------------------------------------------------------
         SIDEBAR
        ------------------------------------------------------------ */}
-      <aside className="w-64 bg-white border-r border-gray-200 flex flex-col">
-        <div className="px-6 py-6 border-b">
-          <h1 className="text-2xl font-bold text-gray-900">
-            Resume Builder
-          </h1>
-          <p className="text-sm text-gray-500">
-            Create a professional resume
-          </p>
+      {/* ------------------------------------------------------------
+        SIDEBAR (STEPPER)
+       ------------------------------------------------------------ */}
+      <aside className="w-72 bg-white border-r border-gray-100 flex flex-col font-sans z-20 shadow-sm">
+        <div className="px-6 py-8 border-b border-gray-50 bg-white">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center text-white shadow-blue-200 shadow-lg">
+              <FileText className="w-6 h-6" />
+            </div>
+            <div>
+              <h1 className="text-xl font-extrabold text-gray-900 tracking-tight leading-none">
+                ResumeBuilder
+              </h1>
+              <p className="text-xs text-gray-400 font-medium mt-1">
+                Professional & Private
+              </p>
+            </div>
+          </div>
         </div>
 
-        <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-2">
+        <nav className="flex-1 overflow-y-auto px-4 py-6 space-y-3">
           {steps.map((s, i) => {
             const Icon = s.icon;
             const active = currentStep === i;
+            const completed = isStepComplete(i);
 
             return (
               <button
                 key={i}
                 onClick={() => setCurrentStep(i)}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition ${active
-                  ? "bg-blue-50 text-blue-700 font-semibold"
-                  : "text-gray-700 hover:bg-gray-100"
+                className={`w-full group relative flex items-center gap-4 px-4 py-3.5 rounded-xl text-left transition-all duration-200 border ${active
+                    ? "bg-blue-50 border-blue-100 shadow-sm"
+                    : "bg-transparent border-transparent hover:bg-gray-50"
                   }`}
               >
-                <Icon className={`w-5 h-5`} />
-                {s.label}
+                <div
+                  className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${active
+                      ? "bg-white text-blue-600 shadow-sm"
+                      : "bg-gray-50 text-gray-400 group-hover:bg-white group-hover:text-gray-500"
+                    }`}
+                >
+                  <Icon className="w-5 h-5" />
+                </div>
+
+                <div className="flex-1">
+                  <span
+                    className={`block text-sm font-bold ${active ? "text-blue-900" : "text-gray-600 group-hover:text-gray-900"
+                      }`}
+                  >
+                    {s.label}
+                  </span>
+                  {active && (
+                    <span className="text-[10px] uppercase tracking-wider font-semibold text-blue-400">
+                      In Progress
+                    </span>
+                  )}
+                </div>
+
+                {completed && (
+                  <CheckCircle className="w-5 h-5 text-green-500 fill-green-50" />
+                )}
               </button>
             );
           })}
         </nav>
 
-        <div className="p-4 border-t space-y-3">
+        <div className="p-4 border-t border-gray-100 bg-gray-50/50">
           <button
             onClick={() => setShowImportModal(true)}
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-white border border-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 hover:border-gray-300 shadow-sm transition-all"
           >
             <Upload className="w-4 h-4" />
-            Import Data
-          </button>
-
-          <button
-            onClick={handleExportJSON}
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-white border rounded-lg hover:bg-gray-50"
-          >
-            <FileJson className="w-4 h-4" />
-            Export JSON
+            Import / Export
           </button>
         </div>
       </aside>
@@ -327,17 +375,11 @@ export default function App() {
         MAIN FORM AREA
        ------------------------------------------------------------ */}
       <main className="flex-1 overflow-y-auto p-8">
-        {/* Progress Bar */}
-        <div className="max-w-3xl mx-auto mb-6">
-          <div className="flex justify-between text-sm text-gray-600 mb-2">
-            <span>
-              Step {currentStep + 1} / {steps.length}
-            </span>
-          </div>
-
-          <div className="w-full h-2 bg-gray-200 rounded-full">
+        {/* Simplified Progress Bar */}
+        <div className="max-w-3xl mx-auto mb-8 sticky top-0 bg-gray-50 pt-4 pb-2 z-10 backdrop-blur-sm">
+          <div className="w-full h-1 bg-gray-200 rounded-full overflow-hidden">
             <div
-              className="h-2 bg-blue-600 rounded-full transition-all"
+              className="h-full bg-blue-600 rounded-full transition-all duration-500 ease-out"
               style={{
                 width: `${((currentStep + 1) / steps.length) * 100}%`,
               }}
@@ -419,41 +461,108 @@ export default function App() {
               </div>
 
               <div className="space-y-4">
-                {/* JSON Upload */}
-                <button
-                  onClick={() => fileInputRef.current?.click()}
-                  className="w-full py-3 bg-gray-100 rounded-lg border flex justify-center gap-3 hover:bg-gray-200"
-                >
-                  <FileJson className="w-5 h-5" />
-                  Upload JSON File
-                </button>
+                {/* Modal Content */}
+                <div className="p-6">
+                  <div className="grid grid-cols-1 gap-3">
+
+                    {/* 1. Upload Resume */}
+                    <button
+                      onClick={() => {
+                        // This relies on the file input below
+                        fileInputRef.current?.click();
+                        setIsParsingResume(true);
+                      }}
+                      className="w-full group flex items-start gap-4 p-4 rounded-xl border border-gray-200 hover:border-blue-500 hover:bg-blue-50/50 transition-all text-left"
+                    >
+                      <div className="p-3 bg-blue-100 text-blue-600 rounded-lg group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                        <FileUp className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-gray-900 group-hover:text-blue-700">Upload Resume File</h3>
+                        <p className="text-xs text-gray-500 mt-1">Support for PDF soon (currently uses text/parsing)</p>
+                      </div>
+                    </button>
+
+                    {/* 2. Paste JSON */}
+                    <div className="p-4 rounded-xl border border-gray-200 hover:border-blue-500 transition-all focus-within:ring-2 focus-within:ring-blue-500/20">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="p-2 bg-purple-100 text-purple-600 rounded-lg">
+                          <FileJson className="w-5 h-5" />
+                        </div>
+                        <span className="font-bold text-gray-900">Paste JSON/Text</span>
+                      </div>
+                      <textarea
+                        value={jsonInput}
+                        onChange={(e) => setJsonInput(e.target.value)}
+                        placeholder="Paste resume JSON data here..."
+                        className="w-full h-24 p-3 bg-gray-50 rounded-lg border-0 text-sm focus:ring-0 resize-none font-mono"
+                      />
+                      <div className="mt-2 flex justify-end">
+                        <button
+                          onClick={handleImportJSON}
+                          disabled={!jsonInput.trim()}
+                          className="px-4 py-2 bg-gray-900 text-white text-sm font-semibold rounded-lg hover:bg-black disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          Import JSON
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* 3. Upload JSON */}
+                    <button
+                      onClick={() => {
+                        fileInputRef.current?.click();
+                        setIsParsingResume(false); // Mode switch
+                      }}
+                      className="w-full group flex items-center gap-4 p-4 rounded-xl border border-gray-200 hover:border-gray-400 hover:bg-gray-50 transition-all text-left"
+                    >
+                      <div className="p-2 bg-gray-100 text-gray-600 rounded-lg group-hover:bg-gray-200">
+                        <Upload className="w-5 h-5" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-gray-700">Upload JSON File</h3>
+                        <p className="text-xs text-gray-400">Restore from a previously exported file</p>
+                      </div>
+                    </button>
+
+                    {/* 4. LinkedIn (Disabled) */}
+                    <div className="relative group opacity-60">
+                      <button disabled className="w-full flex items-center gap-4 p-4 rounded-xl border border-gray-200 bg-gray-50 cursor-not-allowed text-left">
+                        <div className="p-2 bg-blue-50 text-blue-400 rounded-lg">
+                          <Linkedin className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-gray-500">Import from LinkedIn</h3>
+                          <p className="text-xs text-gray-400">Coming soon</p>
+                        </div>
+                      </button>
+                    </div>
+
+                    {/* Export Option inside modal for completeness */}
+                    <div className="pt-4 mt-2 border-t">
+                      <button
+                        onClick={handleExportJSON}
+                        className="w-full flex items-center justify-center gap-2 text-sm text-gray-600 hover:text-blue-600 py-2"
+                      >
+                        <FileJson className="w-4 h-4" />
+                        Export Current Data as JSON
+                      </button>
+                    </div>
+
+                  </div>
+                </div>
+
+                {/* Hidden Input for Files */}
                 <input
                   type="file"
                   ref={fileInputRef}
                   className="hidden"
                   onChange={handleImportFile}
-                  accept=".json"
+                  accept=".json,.txt"
                 />
-
-                {/* Paste JSON area */}
-                <textarea
-                  value={jsonInput}
-                  onChange={(e) => setJsonInput(e.target.value)}
-                  placeholder="Paste JSON data here..."
-                  className="w-full h-40 border rounded-lg p-3"
-                />
-
-                <button
-                  onClick={handleImportJSON}
-                  className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700"
-                >
-                  Import JSON
-                </button>
               </div>
             </div>
-          </div>
-        )
-      }
-    </div >
-  );
+      )}
+          </div >
+        );
 }
