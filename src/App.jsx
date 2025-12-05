@@ -12,6 +12,7 @@ import {
   GraduationCap,
   Award,
   FolderOpen,
+  Eye,
 } from "lucide-react";
 
 import { generateLatexStylePDF } from "./utils/pdfGenerator";
@@ -248,6 +249,22 @@ export default function App() {
     setIsParsingResume(false);
   };
 
+  const handlePreviewPDF = async () => {
+    if (!isFormValid()) {
+      alert("Missing required fields: Full Name, Email, Phone");
+      return;
+    }
+
+    try {
+      const pdf = generateLatexStylePDF(resumeData);
+      const blob = pdf.output("bloburl");
+      window.open(blob, "_blank");
+    } catch (err) {
+      console.error(err);
+      alert("Preview generation failed.");
+    }
+  };
+
   /** --------------------------
    * RENDER
    ---------------------------*/
@@ -347,84 +364,100 @@ export default function App() {
             setCurrentStep={setCurrentStep}
           />
 
-          {/* Download Button */}
-          <div className="mt-6 flex justify-end">
+        </div>
+    </div>
+      </main >
+
+  {/* ------------------------------------------------------------
+        LIVE PREVIEW
+       ------------------------------------------------------------ */}
+  {/* ------------------------------------------------------------
+        LIVE PREVIEW
+       ------------------------------------------------------------ */}
+  <aside className="w-[450px] border-l bg-gray-100 flex flex-col">
+    <div className="flex-1 overflow-y-auto p-6 flex justify-center">
+      <div className="bg-white shadow-2xl min-h-[500px] w-full">
+        <ResumePreview resumeData={resumeData} />
+      </div>
+    </div>
+
+    {/* Action Bar */}
+    <div className="p-4 bg-white border-t flex gap-3 shadow-lg z-10">
+      <button
+        onClick={handlePreviewPDF}
+        className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors"
+      >
+        <Eye className="w-4 h-4" />
+        Preview
+      </button>
+
+      <button
+        disabled={!isFormValid() || isGenerating}
+        onClick={handleDownloadPDF}
+        className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-semibold transition-colors ${isFormValid()
+            ? "bg-blue-600 text-white hover:bg-blue-700"
+            : "bg-gray-300 text-gray-500 cursor-not-allowed"
+          }`}
+      >
+        <Download className="w-4 h-4" />
+        {isGenerating ? "Generating..." : "Download"}
+      </button>
+    </div>
+  </aside>
+
+  {/* ------------------------------------------------------------
+        IMPORT MODAL
+       ------------------------------------------------------------ */}
+  {
+    showImportModal && (
+      <div className="fixed inset-0 bg-black/30 flex items-center justify-center p-6 z-50">
+        <div className="bg-white rounded-xl max-w-3xl w-full p-6 shadow-lg">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-semibold">Import Resume Data</h2>
             <button
-              disabled={!isFormValid() || isGenerating}
-              onClick={handleDownloadPDF}
-              className={`flex items-center gap-2 px-6 py-3 rounded-lg font-semibold ${isFormValid()
-                ? "bg-blue-600 text-white hover:bg-blue-700"
-                : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                }`}
+              onClick={() => setShowImportModal(false)}
+              className="text-gray-600 hover:text-gray-900"
             >
-              <Download className="w-4 h-4" />
-              {isGenerating ? "Generating..." : "Download PDF"}
+              <X className="w-6 h-6" />
+            </button>
+          </div>
+
+          <div className="space-y-4">
+            {/* JSON Upload */}
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="w-full py-3 bg-gray-100 rounded-lg border flex justify-center gap-3 hover:bg-gray-200"
+            >
+              <FileJson className="w-5 h-5" />
+              Upload JSON File
+            </button>
+            <input
+              type="file"
+              ref={fileInputRef}
+              className="hidden"
+              onChange={handleImportFile}
+              accept=".json"
+            />
+
+            {/* Paste JSON area */}
+            <textarea
+              value={jsonInput}
+              onChange={(e) => setJsonInput(e.target.value)}
+              placeholder="Paste JSON data here..."
+              className="w-full h-40 border rounded-lg p-3"
+            />
+
+            <button
+              onClick={handleImportJSON}
+              className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700"
+            >
+              Import JSON
             </button>
           </div>
         </div>
-      </main>
-
-      {/* ------------------------------------------------------------
-        LIVE PREVIEW
-       ------------------------------------------------------------ */}
-      <aside className="w-[420px] border-l bg-white overflow-y-auto p-4">
-        <h2 className="text-lg font-semibold mb-3">Live Preview</h2>
-        <div className="bg-white rounded-lg border shadow-sm p-4">
-          <ResumePreview resumeData={resumeData} />
-        </div>
-      </aside>
-
-      {/* ------------------------------------------------------------
-        IMPORT MODAL
-       ------------------------------------------------------------ */}
-      {showImportModal && (
-        <div className="fixed inset-0 bg-black/30 flex items-center justify-center p-6 z-50">
-          <div className="bg-white rounded-xl max-w-3xl w-full p-6 shadow-lg">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold">Import Resume Data</h2>
-              <button
-                onClick={() => setShowImportModal(false)}
-                className="text-gray-600 hover:text-gray-900"
-              >
-                <X className="w-6 h-6" />
-              </button>
-            </div>
-
-            <div className="space-y-4">
-              {/* JSON Upload */}
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                className="w-full py-3 bg-gray-100 rounded-lg border flex justify-center gap-3 hover:bg-gray-200"
-              >
-                <FileJson className="w-5 h-5" />
-                Upload JSON File
-              </button>
-              <input
-                type="file"
-                ref={fileInputRef}
-                className="hidden"
-                onChange={handleImportFile}
-                accept=".json"
-              />
-
-              {/* Paste JSON area */}
-              <textarea
-                value={jsonInput}
-                onChange={(e) => setJsonInput(e.target.value)}
-                placeholder="Paste JSON data here..."
-                className="w-full h-40 border rounded-lg p-3"
-              />
-
-              <button
-                onClick={handleImportJSON}
-                className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700"
-              >
-                Import JSON
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+      </div>
+    )
+  }
+    </div >
   );
 }
