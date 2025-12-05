@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { SortableItem } from './SortableItem';
@@ -12,27 +12,30 @@ export function ResponsibilityList({ items = [], onChange }) {
 
     // Initialize/Sync IDs
     useEffect(() => {
-        // Basic sync: if lengths differ or content differs significantly, reset.
-        // For simple implementation, we map prop items to existing IDs if possible, or gen new ones.
         setListItems(prev => {
+            if (items.length === 0) {
+                // Ensure at least one empty bullet if empty
+                // But wait, if we have local state, we should check if we already have it?
+                // If the prop is explicitly empty (e.g. parent clear), we should reset.
+                // But if it is initial load...
+                if (prev.length === 0) {
+                    return [{ id: crypto.randomUUID(), text: "" }];
+                }
+            }
+
             const newItems = items.map((text, i) => {
-                // Try to keep existing ID at this index if text roughly matches or just by index?
-                // "By index" is unsafe for insert/delete.
-                // Best: if prev[i] exists, use it? No, if we swap, index changes.
-                // We'll trust that this runs on mount or full reset. 
-                // For internal updates, we rely on local state and push changes up.
-                // If parent updates (e.g. import), all IDs regenerate. That's acceptable.
-                return { id: crypto.randomUUID(), text };
+                // Heuristic: If we have a local item at this index, keep its ID to prevent focus loss
+                // Only if texts match or we are initializing. 
+                // Simple sync:
+                return { id: (prev[i] ? prev[i].id : crypto.randomUUID()), text };
             });
 
-            // Optimization: if text matches prev state exactly, don't update (avoid loop)
-            if (prev.length === items.length && prev.every((p, i) => p.text === items[i])) {
-                return prev;
-            }
+            // If newItems is empty (shouldn't happen if we force 1 above, but logic:
+            if (newItems.length === 0) return [{ id: crypto.randomUUID(), text: "" }];
+
             return newItems;
         });
-    }, [items === listItems.map(l => l.text) ? listItems : items]);
-    // Dependency trick: only update if parent data is DIFFERENT from what check would imply
+    }, [items]); // Simplified dependency
 
     const sensors = useSensors(
         useSensor(PointerSensor),
@@ -46,22 +49,34 @@ export function ResponsibilityList({ items = [], onChange }) {
 
     const handleChange = (id, value) => {
         const newItems = listItems.map(item => item.id === id ? { ...item, text: value } : item);
-        triggerUpdate(newItems);
 
-        // Auto-add logic handled in specific handlers or effects? 
-        // "Typing in last responsibility automatically creates a new empty bullet"
+        // Update local state immediately for responsiveness
+        setListItems(newItems);
+
+        // Debounce propagation to parent if needed, but for now direct:
+        onChange(newItems.map(i => i.text));
+
+        // Auto-add logic: if typing in last one, add new
         const index = newItems.findIndex(i => i.id === id);
         if (index === newItems.length - 1 && value.trim() !== "") {
-            triggerUpdate([...newItems, { id: crypto.randomUUID(), text: "" }]);
+            // We need to use Functional State update to be safe or just trigger update
+            // but we can't call setListItems twice in sync easily.
+            // Let's create the bigger array.
+            const added = [...newItems, { id: crypto.randomUUID(), text: "" }];
+            setListItems(added);
+            onChange(added.map(i => i.text));
         }
     };
 
     const handleBlur = (id) => {
+        // Remove empty ones on blur, unless it's the only one
         const index = listItems.findIndex(i => i.id === id);
-        // If empty and not last, remove
-        if (index < listItems.length - 1 && listItems[index].text.trim() === "") {
-            const newItems = listItems.filter(i => i.id !== id);
-            triggerUpdate(newItems);
+        const item = listItems[index];
+        if (!item) return;
+
+        if (item.text.trim() === "" && listItems.length > 1) {
+            const trimmed = listItems.filter(i => i.id !== id);
+            triggerUpdate(trimmed);
         }
     };
 
@@ -72,39 +87,15 @@ export function ResponsibilityList({ items = [], onChange }) {
                 const oldIndex = items.findIndex((i) => i.id === active.id);
                 const newIndex = items.findIndex((i) => i.id === over.id);
                 const newArr = arrayMove(items, oldIndex, newIndex);
-                onChange(newArr.map(i => i.text)); // Sync up
+                onChange(newArr.map(i => i.text));
                 return newArr;
             });
         }
     };
 
-    const addSampleBullets = () => {
-        const samples = [
-            "Led a team of 5 developers to deliver feature X ahead of schedule.",
-            "Optimized database queries reducing load times by 40%.",
-            "Collaborated with UX/UI designers to revamp the customer portal."
-        ];
-        const newItems = [
-            ...listItems.filter(i => i.text.trim()), // keep existing content
-            ...samples.map(s => ({ id: crypto.randomUUID(), text: s })),
-            { id: crypto.randomUUID(), text: "" } // empty one at end
-        ];
-        triggerUpdate(newItems);
-    };
-
     return (
         <div className="space-y-2">
-            <div className="flex justify-between items-center mb-1">
-                <label className="font-medium text-sm text-gray-700">Responsibilities</label>
-                <button
-                    type="button"
-                    onClick={addSampleBullets}
-                    className="text-xs text-blue-600 hover:text-blue-700 font-medium"
-                >
-                    Generate sample bullets
-                </button>
-            </div>
-
+            {/* Header removed as requested */}
             <DndContext
                 sensors={sensors}
                 collisionDetection={closestCenter}
@@ -112,34 +103,37 @@ export function ResponsibilityList({ items = [], onChange }) {
                 modifiers={[restrictToVerticalAxis]}
             >
                 <SortableContext
-                    items={listItems}
+                    items={listItems.map(i => i.id)} // Must map to IDs
                     strategy={verticalListSortingStrategy}
                 >
                     <div className="space-y-2">
-                        {listItems.map((item, index) => (
+                        {listItems.map((item) => (
                             <SortableItem key={item.id} id={item.id} className="items-start">
-                                <div className="relative w-full group/input">
+                                <div className="relative w-full group/input flex items-center gap-2">
+                                    <div className="mt-2.5 w-1.5 h-1.5 rounded-full bg-gray-400 shrink-0" />
                                     <textarea
                                         value={item.text}
                                         onChange={(e) => handleChange(item.id, e.target.value)}
                                         onBlur={() => handleBlur(item.id)}
                                         placeholder="Type responsibility here..."
                                         rows={1}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none overflow-hidden min-h-[38px] text-sm"
+                                        className="flex-1 px-0 py-2 border-none bg-transparent focus:ring-0 resize-none overflow-hidden min-h-[38px] text-body text-text-primary placeholder:text-text-secondary focus:outline-none"
                                         onInput={(e) => {
                                             e.target.style.height = 'auto';
                                             e.target.style.height = e.target.scrollHeight + 'px';
                                         }}
+                                        autoFocus={listItems.length === 1 && !item.text}
                                     />
                                     {/* Inline remove button on hover */}
                                     <button
                                         onClick={() => {
                                             const newItems = listItems.filter(i => i.id !== item.id);
-                                            if (newItems.length === 0) newItems.push({ id: crypto.randomUUID(), text: "" });
-                                            triggerUpdate(newItems);
+                                            // If removed last one, add empty
+                                            const finalItems = newItems.length === 0 ? [{ id: crypto.randomUUID(), text: "" }] : newItems;
+                                            triggerUpdate(finalItems);
                                         }}
                                         tabIndex={-1}
-                                        className="absolute right-2 top-2 text-gray-400 hover:text-red-500 opacity-0 group-hover/input:opacity-100 transition-opacity"
+                                        className="text-gray-300 hover:text-red-500 opacity-0 group-hover/input:opacity-100 transition-opacity p-2"
                                     >
                                         <X className="w-4 h-4" />
                                     </button>

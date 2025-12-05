@@ -1,51 +1,244 @@
 @import "tailwindcss";
 
 /* GLOBAL BODY */
-body {
-  background-color: #f3f4f6;
-  /* gray-100 */
-  min-height: 100vh;
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+
+/* GLOBAL BODY */
+/* GLOBAL BODY */
+:root {
+  --bg-primary: #F5F7FA;
+  --bg-secondary: #FFFFFF;
+  --bg-card: #F1F3F6;
+  --text-primary: #222831;
+  --text-secondary: #6B7280;
+  --accent-mint: #A6EBCF;
+  --accent-mint-dark: #84D9B5;
+  --border-light: rgba(0, 0, 0, 0.05);
+  --border-white: rgba(255, 255, 255, 0.9);
 }
 
-/* GLASS EFFECT */
-.glass-effect {
-  background-color: white;
-  backdrop-filter: blur(16px);
-  border: 1px solid white;
-  box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: 'Inter', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* SCROLLBAR */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #CBD5E0;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #A0AEC0;
+}
+
+/* UTILITIES */
+/* UTILITIES - Defined manually to fix Tailwind config issues */
+@layer utilities {
+  .shadow-neu-btn {
+    box-shadow: 6px 6px 12px rgba(0, 0, 0, 0.06), -6px -6px 12px rgba(255, 255, 255, 0.7);
+  }
+
+  .shadow-neu-card {
+    box-shadow: 6px 6px 12px rgba(0, 0, 0, 0.05), -6px -6px 12px rgba(255, 255, 255, 0.9);
+  }
+
+  .shadow-neu-input {
+    box-shadow: inset 3px 3px 6px rgba(0, 0, 0, 0.05), inset -3px -3px 6px rgba(255, 255, 255, 0.7);
+  }
+
+  .shadow-mint-glow {
+    box-shadow: 0 4px 10px rgba(166, 235, 207, 0.4);
+  }
+
+  .shadow-mint-glow-strong {
+    box-shadow: 0 8px 18px rgba(166, 235, 207, 0.6);
+  }
+
+  .shadow-preview-float {
+    box-shadow: 0px 12px 35px rgba(0, 0, 0, 0.12);
+  }
+
+  /* Typography Classes */
+  .text-h1 {
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  .text-h2 {
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  .text-body {
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 1.5;
+  }
+
+  .text-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #6B7280;
+  }
+
+  .text-button {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+
+  /* Sidebar Active State */
+  .sidebar-active {
+    background: #FFFFFF;
+    box-shadow: 6px 6px 12px rgba(0, 0, 0, 0.05), -6px -6px 12px rgba(255, 255, 255, 0.9);
+    border-left: 4px solid #A6EBCF;
+  }
+
+  /* Decorative Elements */
+  .decorative-blob {
+    background: #A6EBCF;
+    opacity: 0.08;
+    filter: blur(120px);
+  }
+
+  .decorative-blob-2 {
+    background: #60a5fa;
+    opacity: 0.05;
+    filter: blur(150px);
+  }
+}
+
+.neumorphic-button {
+  @apply bg-[#FFFFFF] rounded-2xl text-[#6B7280] font-medium transition-all duration-300;
+  box-shadow: 6px 6px 12px rgba(0, 0, 0, 0.06), -6px -6px 12px rgba(255, 255, 255, 0.7);
+}
+
+.neumorphic-button:hover {
+  @apply transform -translate-y-0.5 text-[#222831];
+}
+
+.neumorphic-button.active {
+  @apply border-l-4 border-[#A6EBCF] text-[#222831] bg-[#F1F3F6];
+  box-shadow: inset 3px 3px 6px rgba(0, 0, 0, 0.05), inset -3px -3px 6px rgba(255, 255, 255, 0.7);
+}
+
+.adidas-card {
+  @apply bg-[#FFFFFF] rounded-[22px] border border-transparent;
+  box-shadow: 6px 6px 12px rgba(0, 0, 0, 0.05), -6px -6px 12px rgba(255, 255, 255, 0.9);
+}
+
+.action-btn-mint {
+  background: linear-gradient(135deg, var(--accent-mint), var(--accent-mint-dark));
+  color: #1B1B1B;
+  border-radius: 14px;
+  box-shadow: 0 4px 10px rgba(166, 235, 207, 0.4);
+  transition: all 0.2s ease;
+}
+
+.action-btn-mint:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 18px rgba(166, 235, 207, 0.6);
+}
+
+.input-neumorphic {
+  background: var(--bg-primary) !important;
+  border-radius: 12px !important;
+  padding: 10px 14px !important;
+  box-shadow: inset 3px 3px 6px var(--border-light), inset -3px -3px 6px var(--border-white) !important;
+  color: var(--text-primary) !important;
+  font-size: 14px !important;
+  border: 1px solid transparent !important;
+  transition: all 0.2s ease;
+}
+
+.input-neumorphic:focus {
+  border-color: var(--accent-mint) !important;
+  box-shadow: inset 2px 2px 4px var(--border-light), inset -2px -2px 4px var(--border-white), 0 0 0 2px rgba(166, 235, 207, 0.3) !important;
+  outline: none;
 }
 
 /* ANIMATIONS */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+  }
+
+  50% {
     transform: translateY(-10px);
   }
 
-  to {
-    opacity: 1;
-    transform: translateY(0);
+  100% {
+    transform: translateY(0px);
   }
 }
 
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
+@keyframes pulse-glow {
+  0% {
+    opacity: 0.15;
+    transform: scale(1);
   }
 
-  to {
-    opacity: 1;
-    transform: translateY(0);
+  50% {
+    opacity: 0.25;
+    transform: scale(1.05);
+  }
+
+  100% {
+    opacity: 0.15;
+    transform: scale(1);
   }
 }
 
-.animate-fade-in {
-  animation: fadeIn 0.6s ease-out;
+.animate-float {
+  animation: float 6s ease-in-out infinite;
 }
 
-.animate-slide-up {
-  animation: slideUp 0.8s ease-out;
+.animate-pulse-slow {
+  animation: pulse-glow 8s ease-in-out infinite;
+}
+
+/* A4 Page Style */
+.a4-page {
+  width: 360px; /* Reduced from 794px for better A4 ratio */
+  min-height: 510px; /* Adjusted for new width ratio */
+  background: white;
+  margin: 0 auto;
+  padding: 24px; /* Reduced padding for smaller width */
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0px 12px 35px rgba(0, 0, 0, 0.12);
+}
+
+/* Paper Texture (Noise) */
+.a4-page::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+}
+
+.a4-page>* {
+  position: relative;
+  z-index: 1;
 }
 
 /* PRINT */

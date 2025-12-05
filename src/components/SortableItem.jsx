@@ -26,7 +26,7 @@ export function SortableItem({ id, children, className = "" }) {
             <button
                 {...attributes}
                 {...listeners}
-                className="mt-3 text-gray-300 hover:text-gray-600 cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-gray-100"
+                className="mt-3 text-text-secondary hover:text-text-primary cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-bg-secondary"
                 aria-label="Drag to reorder"
                 type="button"
             >

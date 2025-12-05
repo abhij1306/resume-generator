@@ -1,28 +1,29 @@
 import { Plus, Trash2 } from "lucide-react";
 import { ExperienceSection } from "./ExperienceSection";
 import { ProjectsSection } from "./ProjectsSection";
+import { SkillsSection } from "./SkillsSection";
 
 /** -----------------------------
  * UI HELPER COMPONENTS
  -----------------------------*/
 const Input = ({ label, ...props }) => (
-  <div className="space-y-1">
+  <div className="space-y-2">
     {label && (
-      <label className="text-sm font-medium text-gray-700">{label}</label>
+      <label className="text-label">{label}</label>
     )}
     <input
       {...props}
-      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+      className="w-full neumorphic-input focus:ring-1 focus:ring-accent-mint"
     />
   </div>
 );
 
 const TextArea = ({ label, ...props }) => (
-  <div className="space-y-1">
-    <label className="text-sm font-medium text-gray-700">{label}</label>
+  <div className="space-y-2">
+    <label className="text-label">{label}</label>
     <textarea
       {...props}
-      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+      className="w-full neumorphic-input focus:ring-1 focus:ring-accent-mint resize-none"
     />
   </div>
 );
@@ -30,7 +31,7 @@ const TextArea = ({ label, ...props }) => (
 export default function ResumeForm({
   resumeData,
   setResumeData,
-  currentStep,
+  activeSection, // "personal" | "experience" | ...
 }) {
   /** -----------------------------
    * PERSONAL
@@ -69,40 +70,15 @@ export default function ResumeForm({
     }));
   };
 
-  /** -----------------------------
-   * SKILLS
-   -----------------------------*/
-  const addSkill = (type) => {
-    const skill = prompt(`Add ${type} skill`);
-    if (!skill) return;
-    setResumeData((prev) => ({
-      ...prev,
-      skills: {
-        ...prev.skills,
-        [type]: [...prev.skills[type], skill],
-      },
-    }));
-  };
-
-  const removeSkill = (type, index) => {
-    setResumeData((prev) => ({
-      ...prev,
-      skills: {
-        ...prev.skills,
-        [type]: prev.skills[type].filter((_, i) => i !== index),
-      },
-    }));
-  };
-
   /** ============================================================
    *  RENDER SECTIONS
    * ============================================================
    */
 
   /* ---------------------------------------------------------------
-     PERSONAL
-  ----------------------------------------------------------------*/
-  if (currentStep === 0)
+      PERSONAL
+   ----------------------------------------------------------------*/
+  if (activeSection === "personal")
     return (
       <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -150,16 +126,19 @@ export default function ResumeForm({
           onChange={(e) => updatePersonal("summary", e.target.value)}
         />
 
-        <p className="text-xs text-gray-500 text-right">
-          {resumeData.personal.summary.length}/500
-        </p>
+        <div className="flex justify-between items-center">
+          <span className="text-body text-text-secondary">Tip: Keep your summary concise and impactful</span>
+          <span className="text-body text-text-secondary">
+            {resumeData.personal.summary.length}/500
+          </span>
+        </div>
       </div>
     );
 
   /* ---------------------------------------------------------------
-     EXPERIENCE (Modularized)
+     EXPERIENCE
   ----------------------------------------------------------------*/
-  if (currentStep === 1)
+  if (activeSection === "experience")
     return (
       <div className="animate-in fade-in slide-in-from-right-4 duration-300">
         <ExperienceSection
@@ -170,13 +149,13 @@ export default function ResumeForm({
     );
 
   /* ---------------------------------------------------------------
-     EDUCATION
-  ----------------------------------------------------------------*/
-  if (currentStep === 2)
+      EDUCATION
+   ----------------------------------------------------------------*/
+  if (activeSection === "education")
     return (
       <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
         <div className="flex justify-between items-center">
-          <h3 className="font-semibold text-gray-900 text-lg">Education</h3>
+          <h3 className="text-h2 text-text-primary">Education</h3>
 
           <button
             onClick={() =>
@@ -189,7 +168,7 @@ export default function ResumeForm({
                 endDate: "",
               })
             }
-            className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            className="flex items-center gap-2 px-4 py-2 bg-accent-mint text-text-primary rounded-xl font-bold shadow-mint-glow hover:bg-teal-400 transition-colors"
           >
             <Plus className="w-4 h-4" />
             Add Education
@@ -198,16 +177,16 @@ export default function ResumeForm({
 
         {resumeData.education.map((edu, i) => (
           <div
-            key={i} // Index key since education isn't DND yet
-            className="p-4 border rounded-lg shadow-sm bg-white space-y-4"
+            key={i}
+            className="p-6 border border-border-light/50 rounded-2xl bg-bg-card hover:bg-bg-secondary transition-colors space-y-4"
           >
             <div className="flex justify-between items-center">
-              <h4 className="font-semibold text-gray-800">
+              <h4 className="text-h2 text-text-primary">
                 Education {i + 1}
               </h4>
               <button
                 onClick={() => removeItem("education", i)}
-                className="text-red-600 hover:text-red-700"
+                className="text-text-secondary hover:text-red-500 transition-colors"
               >
                 <Trash2 className="w-4 h-4" />
               </button>
@@ -247,7 +226,7 @@ export default function ResumeForm({
               />
 
               <Input
-                label="Start"
+                label="Start Date"
                 value={edu.startDate}
                 onChange={(e) =>
                   updateItem("education", i, "startDate", e.target.value)
@@ -255,7 +234,7 @@ export default function ResumeForm({
               />
 
               <Input
-                label="End"
+                label="End Date"
                 value={edu.endDate}
                 onChange={(e) =>
                   updateItem("education", i, "endDate", e.target.value)
@@ -266,7 +245,7 @@ export default function ResumeForm({
         ))}
 
         {resumeData.education.length === 0 && (
-          <p className="text-center text-gray-500">
+          <p className="text-center text-text-secondary">
             No education added yet.
           </p>
         )}
@@ -276,83 +255,18 @@ export default function ResumeForm({
   /* ---------------------------------------------------------------
      SKILLS
   ----------------------------------------------------------------*/
-  if (currentStep === 3)
+  if (activeSection === "skills")
     return (
-      <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
-        {/* Technical Skills */}
-        <div className="p-4 border rounded-lg bg-white shadow-sm space-y-3">
-          <div className="flex justify-between">
-            <h4 className="font-semibold text-gray-800">Technical Skills</h4>
-            <button
-              onClick={() => addSkill("technical")}
-              className="text-blue-600 hover:text-blue-700 flex items-center gap-1 text-sm"
-            >
-              <Plus className="w-3 h-3" /> Add
-            </button>
-          </div>
-
-          <div className="flex flex-wrap gap-2">
-            {resumeData.skills.technical.map((skill, i) => (
-              <span
-                key={i}
-                className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full flex items-center gap-2 text-sm"
-              >
-                {skill}
-                <button
-                  onClick={() => removeSkill("technical", i)}
-                  className="hover:text-red-600"
-                >
-                  <Trash2 className="w-3 h-3" />
-                </button>
-              </span>
-            ))}
-
-            {resumeData.skills.technical.length === 0 && (
-              <p className="text-gray-500 text-sm">No technical skills yet.</p>
-            )}
-          </div>
-        </div>
-
-        {/* Soft Skills */}
-        <div className="p-4 border rounded-lg bg-white shadow-sm space-y-3">
-          <div className="flex justify-between">
-            <h4 className="font-semibold text-gray-800">Soft Skills</h4>
-            <button
-              onClick={() => addSkill("soft")}
-              className="text-indigo-600 hover:text-indigo-700 flex items-center gap-1 text-sm"
-            >
-              <Plus className="w-3 h-3" /> Add
-            </button>
-          </div>
-
-          <div className="flex flex-wrap gap-2">
-            {resumeData.skills.soft.map((skill, i) => (
-              <span
-                key={i}
-                className="px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full flex items-center gap-2 text-sm"
-              >
-                {skill}
-                <button
-                  onClick={() => removeSkill("soft", i)}
-                  className="hover:text-red-600"
-                >
-                  <Trash2 className="w-3 h-3" />
-                </button>
-              </span>
-            ))}
-
-            {resumeData.skills.soft.length === 0 && (
-              <p className="text-gray-500 text-sm">No soft skills yet.</p>
-            )}
-          </div>
-        </div>
-      </div>
+      <SkillsSection
+        skills={resumeData.skills}
+        setResumeData={setResumeData}
+      />
     );
 
   /* ---------------------------------------------------------------
-     PROJECTS (Modularized)
+     PROJECTS
   ----------------------------------------------------------------*/
-  if (currentStep === 4)
+  if (activeSection === "projects")
     return (
       <div className="animate-in fade-in slide-in-from-right-4 duration-300">
         <ProjectsSection

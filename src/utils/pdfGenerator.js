@@ -219,8 +219,25 @@ export function generateLatexStylePDF(resumeData) {
 
             // Description
             if (project.description) {
-                pdf.setFont('times', 'normal')
-                yPos = addText(project.description, margin, yPos, contentWidth, 11) + 3
+                // If contains newlines, treat as bullet points
+                if (project.description.includes('\n')) {
+                    pdf.setFont('times', 'normal')
+                    project.description.split('\n').filter(line => line.trim()).forEach(line => {
+                        if (yPos > pageHeight - 20) {
+                            pdf.addPage()
+                            yPos = margin
+                        }
+                        pdf.text('•', margin + 2, yPos)
+                        const lines = pdf.splitTextToSize(line, contentWidth - 8)
+                        pdf.text(lines, margin + 6, yPos)
+                        yPos += lines.length * 4
+                    })
+                    yPos += 2 // Extra spacing after list
+                } else {
+                    // Fallback for old single-line descriptions
+                    pdf.setFont('times', 'normal')
+                    yPos = addText(project.description, margin, yPos, contentWidth, 11) + 3
+                }
             }
         })
     }

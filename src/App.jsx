@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import ResumeForm from "./components/ResumeForm";
 import ResumePreview from "./components/ResumePreview";
+import { CustomSection } from "./components/CustomSection";
 import {
   Download,
   FileJson,
@@ -21,10 +22,27 @@ import {
   ZoomOut,
   RotateCcw,
   Maximize,
+  Plus,
 } from "lucide-react";
+
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
 
 import { generateLatexStylePDF } from "./utils/pdfGenerator";
 import { extractResumeFromFile } from "./utils/resumeParser";
+import { SortableItem } from "./components/SortableItem"; // Re-use generic wrapper if possible, or create SidebarItem
 
 export default function App() {
   /** --------------------------
@@ -45,9 +63,20 @@ export default function App() {
     skills: { technical: [], soft: [] },
     certifications: [],
     projects: [],
+    customSections: {}, // { id: { title: "Title", items: [text, text] } }
   });
 
-  const [currentStep, setCurrentStep] = useState(0);
+  // Default Order. Personal is handled separately as fixed header effectively, 
+  // but for sidebar nav we might want it first. 
+  // Let's make "Personal" fixed at index 0, and the rest sortable.
+  const [sectionOrder, setSectionOrder] = useState([
+    "experience",
+    "education",
+    "skills",
+    "projects",
+  ]);
+
+  const [currentStep, setCurrentStep] = useState(0); // 0 is Personal. 1..4 maps to sectionOrder indices.
   const [isGenerating, setIsGenerating] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
   const [jsonInput, setJsonInput] = useState("");
@@ -56,11 +85,30 @@ export default function App() {
   const [isImportingLinkedIn, setIsImportingLinkedIn] = useState(false);
 
   // Preview State
-  const [zoom, setZoom] = useState(0.55); // Default scale to fit sidebar
+  const [zoom, setZoom] = useState(0.45); // Default scale to fit sidebar
   const [isFullScreen, setIsFullScreen] = useState(false);
 
   const fileInputRef = useRef(null);
   const resumeFileInputRef = useRef(null);
+
+  // DnD Sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleDragEnd = (event) => {
+    const { active, over } = event;
+    if (active.id !== over.id) {
+      setSectionOrder((items) => {
+        const oldIndex = items.indexOf(active.id);
+        const newIndex = items.indexOf(over.id);
+        return arrayMove(items, oldIndex, newIndex);
+      });
+    }
+  };
 
   /** --------------------------
    * VALIDATION
@@ -70,17 +118,17 @@ export default function App() {
     return p.fullName.trim() && p.email.trim() && p.phone.trim();
   };
 
-  const isStepComplete = (stepIndex) => {
-    switch (stepIndex) {
-      case 0: // Personal
+  const isStepComplete = (sectionName) => {
+    switch (sectionName) {
+      case "personal":
         return resumeData.personal.fullName && resumeData.personal.email;
-      case 1: // Experience
+      case "experience":
         return resumeData.experience.length > 0;
-      case 2: // Education
+      case "education":
         return resumeData.education.length > 0;
-      case 3: // Skills
+      case "skills":
         return resumeData.skills.technical.length > 0 || resumeData.skills.soft.length > 0;
-      case 4: // Projects
+      case "projects":
         return resumeData.projects.length > 0;
       default:
         return false;
@@ -88,19 +136,55 @@ export default function App() {
   };
 
   /** --------------------------
-   * NAVIGATION STEPS
+   * NAVIGATION LOOKUP
    ---------------------------*/
-  const steps = [
-    { icon: User, label: "Personal" },
-    { icon: Briefcase, label: "Experience" },
-    { icon: GraduationCap, label: "Education" },
-    { icon: Award, label: "Skills" },
-    { icon: FolderOpen, label: "Projects" },
-  ];
+  const getSectionConfig = (sectionId) => {
+    switch (sectionId) {
+      case "personal":
+        return { icon: User, label: "Personal" };
+      case "experience":
+        return { icon: Briefcase, label: "Experience" };
+      case "education":
+        return { icon: GraduationCap, label: "Education" };
+      case "skills":
+        return { icon: Award, label: "Skills" };
+      case "projects":
+        return { icon: FolderOpen, label: "Projects" };
+      default:
+        return { icon: null, label: "" }; // Or handle unknown sections
+    }
+  };
+
+  // effectiveSteps = ["personal", ...sectionOrder]
+  const effectiveSteps = ["personal", ...sectionOrder];
+  const activeSection = effectiveSteps[currentStep];
 
   /** --------------------------
-   * ACTION HANDLERS
-   ---------------------------*/
+    * NAVIGATION TITLE
+    ---------------------------*/
+  const getActiveTitle = () => {
+    switch (activeSection) {
+      case "personal":
+        return "Personal Information";
+      case "experience":
+        return "Professional Experience";
+      case "education":
+        return "Education";
+      case "skills":
+        return "Skills";
+      case "projects":
+        return "Projects";
+      default:
+        if (activeSection.startsWith('custom-')) {
+          return resumeData.customSections[activeSection]?.title || "Custom Section";
+        }
+        return "Resume Section";
+    }
+  };
+
+  /** --------------------------
+    * ACTION HANDLERS
+    ---------------------------*/
 
   const handleDownloadPDF = async () => {
     if (!isFormValid()) {
@@ -167,6 +251,7 @@ export default function App() {
       startDate: exp.startDate || exp.start_date || exp.dates?.split("--")[0]?.trim() || "",
       endDate: exp.endDate || exp.end_date || exp.dates?.split("--")[1]?.trim() || "",
       responsibilities: exp.responsibilities || exp.bullets || (exp.description ? [exp.description] : []),
+      id: exp.id || crypto.randomUUID(), // Ensure ID for DnD
     }));
 
     // Normalize education
@@ -177,6 +262,7 @@ export default function App() {
       gpa: edu.gpa || "",
       startDate: edu.startDate || edu.start_date || edu.dates?.split("--")[0]?.trim() || "",
       endDate: edu.endDate || edu.end_date || edu.dates?.split("--")[1]?.trim() || "",
+      id: edu.id || crypto.randomUUID(),
     }));
 
     // Normalize skills
@@ -221,7 +307,7 @@ export default function App() {
       experience: normalizedExperience,
       education: normalizedEducation,
       skills: normalizedSkills,
-      projects: projects,
+      projects: projects.map(p => ({ ...p, id: p.id || crypto.randomUUID() })),
       certifications: normalizedCertifications,
     };
   };
@@ -297,350 +383,356 @@ export default function App() {
   /** --------------------------
    * RENDER
    ---------------------------*/
+  /** --------------------------
+   * RENDER
+   ---------------------------*/
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-[#F5F7FA] text-[#222831] font-sans selection:bg-[#A6EBCF] selection:text-[#222831] relative overflow-hidden">
+
       {/* ------------------------------------------------------------
-        SIDEBAR
-       ------------------------------------------------------------ */}
+          BACKGROUND BLOBS (Subtle/Faint)
+        ------------------------------------------------------------ */}
+      <div className="fixed inset-0 pointer-events-none z-0">
+        <div className="absolute top-[-10%] left-[-10%] w-[600px] h-[600px] bg-[#A6EBCF] opacity-[0.08] blur-[120px] rounded-full animate-pulse-slow"></div>
+        <div className="absolute bottom-[-10%] right-[-10%] w-[700px] h-[700px] bg-blue-400 opacity-[0.05] blur-[150px] rounded-full animate-float"></div>
+      </div>
+
       {/* ------------------------------------------------------------
-        SIDEBAR (STEPPER)
-       ------------------------------------------------------------ */}
-      <aside className="w-72 bg-white border-r border-gray-100 flex flex-col font-sans z-20 shadow-sm">
-        <div className="px-6 py-8 border-b border-gray-50 bg-white">
+        SIDEBAR - Neumorphic Design
+        ------------------------------------------------------------ */}
+      <aside className="w-72 bg-[#FFFFFF] flex flex-col z-20 relative border-r border-[rgba(0,0,0,0.05)]">
+        {/* BRAND */}
+        <div className="px-8 py-10">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center text-white shadow-blue-200 shadow-lg">
-              <FileText className="w-6 h-6" />
+            {/* Logo Icon */}
+            <div className="w-10 h-10 bg-[#FFFFFF] rounded-xl shadow-[6px_6px_12px_rgba(0,0,0,0.06),-6px_-6px_12px_rgba(255,255,255,0.7)] flex items-center justify-center text-[#222831]">
+              <span className="font-display font-bold text-xl">R</span>
             </div>
             <div>
-              <h1 className="text-xl font-extrabold text-gray-900 tracking-tight leading-none">
-                ResumeBuilder
+              <h1 className="text-xl font-display font-semibold text-[#222831] tracking-tight leading-none">
+                Resume<span className="text-[#222831] border-b-2 border-[#A6EBCF]">Edge</span>
               </h1>
-              <p className="text-xs text-gray-400 font-medium mt-1">
-                Professional & Private
-              </p>
             </div>
           </div>
         </div>
 
-        <nav className="flex-1 overflow-y-auto px-4 py-6 space-y-3">
-          {steps.map((s, i) => {
-            const Icon = s.icon;
-            const active = currentStep === i;
-            const completed = isStepComplete(i);
-
-            return (
-              <button
-                key={i}
-                onClick={() => setCurrentStep(i)}
-                className={`w-full group relative flex items-center gap-4 px-4 py-3.5 rounded-xl text-left transition-all duration-200 border ${active
-                  ? "bg-blue-50 border-blue-100 shadow-sm"
-                  : "bg-transparent border-transparent hover:bg-gray-50"
-                  }`}
-              >
-                <div
-                  className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${active
-                    ? "bg-white text-blue-600 shadow-sm"
-                    : "bg-gray-50 text-gray-400 group-hover:bg-white group-hover:text-gray-500"
-                    }`}
-                >
-                  <Icon className="w-5 h-5" />
-                </div>
-
-                <div className="flex-1">
-                  <span
-                    className={`block text-sm font-bold ${active ? "text-blue-900" : "text-gray-600 group-hover:text-gray-900"
-                      }`}
-                  >
-                    {s.label}
-                  </span>
-                  {active && (
-                    <span className="text-[10px] uppercase tracking-wider font-semibold text-blue-400">
-                      In Progress
-                    </span>
-                  )}
-                </div>
-
-                {completed && (
-                  <CheckCircle className="w-5 h-5 text-green-500 fill-green-50" />
-                )}
-              </button>
-            );
-          })}
-        </nav>
-
-        <div className="p-4 border-t border-gray-100 bg-gray-50/50">
+        {/* NAV */}
+        <nav className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+          {/* 1. PERSONAL (Fixed) */}
           <button
-            onClick={() => setShowImportModal(true)}
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-white border border-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 hover:border-gray-300 shadow-sm transition-all"
-          >
-            <Upload className="w-4 h-4" />
-            Import / Export
-          </button>
-        </div>
-      </aside>
-
-      {/* ------------------------------------------------------------
-        MAIN FORM AREA
-       ------------------------------------------------------------ */}
-      <main className="flex-1 overflow-y-auto p-8">
-        {/* Simplified Progress Bar */}
-        <div className="max-w-3xl mx-auto mb-8 sticky top-0 bg-gray-50 pt-4 pb-2 z-10 backdrop-blur-sm">
-          <div className="w-full h-1 bg-gray-200 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-blue-600 rounded-full transition-all duration-500 ease-out"
-              style={{
-                width: `${((currentStep + 1) / steps.length) * 100}%`,
-              }}
-            />
-          </div>
-        </div>
-
-        {/* Section Title */}
-        <div className="max-w-3xl mx-auto mb-4">
-          <h2 className="text-xl font-bold text-gray-900">
-            {steps[currentStep].label} Information
-          </h2>
-          <p className="text-sm text-gray-500">
-            Fill in the fields below.
-          </p>
-        </div>
-
-        {/* Actual Form */}
-        <div className="max-w-3xl mx-auto bg-white p-6 rounded-xl shadow-sm border">
-          <ResumeForm
-            resumeData={resumeData}
-            setResumeData={setResumeData}
-            currentStep={currentStep}
-            setCurrentStep={setCurrentStep}
-          />
-
-        </div>
-      </main>
-
-      {/* ------------------------------------------------------------
-        LIVE PREVIEW
-       ------------------------------------------------------------ */}
-      <aside className="w-[450px] border-l bg-gray-100/50 flex flex-col relative">
-        {/* Floating Zoom Controls */}
-        <div className="absolute bottom-24 right-6 flex flex-col gap-2 z-30 pointer-events-auto">
-          <div className="bg-white/90 backdrop-blur shadow-lg border border-gray-200 rounded-xl p-1.5 flex flex-col gap-1">
-            <button
-              onClick={() => setZoom((z) => Math.min(z + 0.1, 1.5))}
-              className="p-2 hover:bg-blue-50 text-gray-600 hover:text-blue-600 rounded-lg transition-colors"
-              title="Zoom In"
-            >
-              <ZoomIn className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => setZoom((z) => Math.max(z - 0.1, 0.3))}
-              className="p-2 hover:bg-blue-50 text-gray-600 hover:text-blue-600 rounded-lg transition-colors"
-              title="Zoom Out"
-            >
-              <ZoomOut className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => setZoom(0.55)}
-              className="p-2 hover:bg-blue-50 text-gray-600 hover:text-blue-600 rounded-lg transition-colors"
-              title="Reset Zoom"
-            >
-              <RotateCcw className="w-4 h-4" />
-            </button>
-          </div>
-          <button
-            onClick={() => setIsFullScreen(true)}
-            className="bg-gray-900 text-white p-3 rounded-xl shadow-lg hover:bg-black transition-all hover:scale-105"
-            title="Full Screen"
-          >
-            <Maximize className="w-4 h-4" />
-          </button>
-        </div>
-
-        <div className="flex-1 overflow-auto bg-gray-100/50 p-8 flex justify-center items-start relative custom-scrollbar">
-          <div
-            className="bg-white shadow-2xl transition-transform duration-200 ease-out origin-top"
-            style={{
-              width: "210mm",
-              minHeight: "297mm",
-              transform: `scale(${zoom})`,
-            }}
-          >
-            <ResumePreview resumeData={resumeData} />
-          </div>
-        </div>
-
-        {/* Action Bar */}
-        <div className="p-4 bg-white border-t flex gap-3 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-20 relative">
-          <button
-            onClick={handlePreviewPDF}
-            className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors"
-          >
-            <Eye className="w-4 h-4" />
-            Preview
-          </button>
-
-          <button
-            disabled={!isFormValid() || isGenerating}
-            onClick={handleDownloadPDF}
-            className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-semibold transition-colors ${isFormValid()
-              ? "bg-blue-600 text-white hover:bg-blue-700"
-              : "bg-gray-300 text-gray-500 cursor-not-allowed"
+            onClick={() => setCurrentStep(0)}
+            className={`w-full group flex items-center gap-4 px-4 py-3 rounded-2xl text-left transition-all duration-200 ${currentStep === 0
+              ? "bg-[#FFFFFF] shadow-[6px_6px_12px_rgba(0,0,0,0.05),-6px_-6px_12px_rgba(255,255,255,0.9)] border-l-4 border-[#A6EBCF] text-[#222831]"
+              : "hover:bg-[#FFFFFF] hover:shadow-[6px_6px_12px_rgba(0,0,0,0.06),-6px_-6px_12px_rgba(255,255,255,0.7)] text-[#6B7280]"
               }`}
           >
-            <Download className="w-4 h-4" />
-            {isGenerating ? "Generating..." : "Download"}
+            <div
+              className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${currentStep === 0
+                ? "text-[#222831]"
+                : "text-[#6B7280] group-hover:text-[#222831]"
+                }`}
+            >
+              <User className="w-5 h-5" />
+            </div>
+            <div className="flex-1">
+              <span className="block text-[13px] font-semibold tracking-wide text-[#6B7280]">
+                PERSONAL
+              </span>
+            </div>
+            {isStepComplete("personal") && <div className="w-2 h-2 rounded-full bg-[#A6EBCF]"></div>}
+          </button>
+
+          {/* 2. SORTABLE SECTIONS */}
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <SortableContext
+              items={sectionOrder}
+              strategy={verticalListSortingStrategy}
+            >
+              {sectionOrder.map((sectionId, i) => {
+                const config = getSectionConfig(sectionId);
+                const Icon = config.icon;
+                const stepIndex = i + 1;
+                const active = currentStep === stepIndex;
+                const completed = isStepComplete(sectionId);
+
+                return (
+                  <SortableItem key={sectionId} id={sectionId}>
+                    <button
+                      onClick={() => setCurrentStep(stepIndex)}
+                      className={`w-full group flex items-center gap-4 px-4 py-3 rounded-2xl text-left transition-all duration-200 ${active
+                        ? "bg-[#FFFFFF] shadow-[6px_6px_12px_rgba(0,0,0,0.05),-6px_-6px_12px_rgba(255,255,255,0.9)] border-l-4 border-[#A6EBCF] text-[#222831]"
+                        : "hover:bg-[#FFFFFF] hover:shadow-[6px_6px_12px_rgba(0,0,0,0.06),-6px_-6px_12px_rgba(255,255,255,0.7)] text-[#6B7280]"
+                        }`}
+                    >
+                      <div
+                        className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${active
+                          ? "text-[#222831]"
+                          : "text-[#6B7280] group-hover:text-[#222831]"
+                          }`}
+                      >
+                        <Icon className="w-5 h-5" />
+                      </div>
+
+                      <div className="flex-1">
+                        <span className="block text-[13px] font-semibold tracking-wide text-[#6B7280]">
+                          {config.label.toUpperCase()}
+                        </span>
+                      </div>
+
+                      {completed && (
+                        <div className="w-2 h-2 rounded-full bg-[#A6EBCF]"></div>
+                      )}
+                    </button>
+                  </SortableItem>
+                );
+              })}
+            </SortableContext>
+          </DndContext>
+
+          {/* ADD SECTION BUTTON */}
+          <button
+            onClick={() => {
+              const title = prompt("Enter Section Title (e.g. Certifications, Languages):");
+              if (title) {
+                const id = `custom-${crypto.randomUUID()}`;
+                setResumeData(prev => ({
+                  ...prev,
+                  customSections: {
+                    ...prev.customSections,
+                    [id]: { title, items: [] }
+                  }
+                }));
+                setSectionOrder(prev => [...prev, id]);
+                setCurrentStep(sectionOrder.length + 1); // Select the new section
+              }
+            }}
+            className="mt-2 mx-auto flex items-center gap-2 px-4 py-2 text-xs font-bold text-[#A6EBCF] border border-[rgba(166,235,207,0.3)] rounded-xl hover:bg-[#A6EBCF] hover:text-[#222831] transition-all uppercase tracking-wider opacity-80 hover:opacity-100"
+          >
+            <Plus className="w-3 h-3" /> Add Section
+          </button>
+        </nav>
+
+        <div className="p-6 border-t border-[rgba(0,0,0,0.05)] mx-4">
+          <button
+            onClick={() => setShowImportModal(true)}
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-[#FFFFFF] text-[#6B7280] text-xs font-semibold rounded-xl shadow-[6px_6px_12px_rgba(0,0,0,0.06),-6px_-6px_12px_rgba(255,255,255,0.7)] hover:text-[#222831] hover:scale-[1.02] transition-all"
+          >
+            <Upload className="w-4 h-4" />
+            IMPORT / EXPORT
           </button>
         </div>
       </aside>
+
+      {/* ------------------------------------------------------------
+        MAIN FORM AREA - Three Column Layout
+        ------------------------------------------------------------ */}
+      <div className="flex-1 flex overflow-hidden z-10 relative">
+
+        {/* CENTER: FORM - Wide and Airy */}
+        <main className="flex-1 overflow-y-auto custom-scrollbar p-6 lg:p-10">
+          <div className="max-w-4xl mx-auto pb-32">
+
+            {/* Container - Neumorphic Card */}
+            <div className="bg-[#FFFFFF] rounded-[22px] shadow-[6px_6px_12px_rgba(0,0,0,0.05),-6px_-6px_12px_rgba(255,255,255,0.9)] p-8 lg:p-12 animate-slide-up relative overflow-hidden">
+              {/* Decorative Gradient Blob inside card */}
+              <div className="absolute top-0 right-0 w-64 h-64 bg-[#A6EBCF] opacity-[0.1] blur-[80px] rounded-full pointer-events-none"></div>
+
+              {/* Header */}
+              <div className="mb-8 pl-2">
+                <h2 className="text-2xl font-display font-bold text-[#222831] tracking-tight">
+                  {getActiveTitle()}
+                </h2>
+                <p className="text-[#6B7280] mt-1 text-[13px]">
+                  {activeSection === 'experience' ? "Add your relevant professional history." : "Fill in the details below to complete your profile."}
+                </p>
+              </div>
+
+              {activeSection.startsWith('custom-') && (
+                <CustomSection
+                  sectionId={activeSection}
+                  data={resumeData.customSections[activeSection]}
+                  setResumeData={setResumeData}
+                />
+              )}
+              {!activeSection.startsWith('custom-') && (
+                <ResumeForm
+                  currentStep={currentStep} // Only for visual, can refactor
+                  activeSection={activeSection}
+                  resumeData={resumeData}
+                  setResumeData={setResumeData}
+                />
+              )}
+            </div>
+          </div>
+        </main>
+
+        {/* RIGHT COLUMN: PREVIEW - Narrower A4 Frame */}
+        <aside className="w-[360px] bg-[#F5F7FA] border-l border-[rgba(0,0,0,0.05)] flex flex-col relative h-full shrink-0 shadow-[0px_12px_35px_rgba(0,0,0,0.12)] z-30">
+
+          {/* Top Bar */}
+          <div className="absolute top-4 right-4 z-30 flex gap-2">
+            <button
+              onClick={() => setIsFullScreen(true)}
+              className="bg-[#FFFFFF] text-[#6B7280] p-2 rounded-xl hover:text-[#222831] hover:shadow-[6px_6px_12px_rgba(0,0,0,0.06),-6px_-6px_12px_rgba(255,255,255,0.7)] transition-all"
+              title="Full Screen"
+            >
+              <Maximize className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Scrollable Preview Area */}
+          <div className="flex-1 overflow-y-auto p-6 custom-scrollbar flex justify-center bg-[#F1F3F6]/50">
+            {/* Preview Frame - No scaling needed since we set width to 360px */}
+            <div className="origin-top mt-8 shadow-2xl rounded-sm">
+              <ResumePreview
+                resumeData={resumeData}
+                sectionOrder={sectionOrder}
+              />
+            </div>
+          </div>
+
+          {/* Action Bar */}
+          <div className="p-5 bg-[#FFFFFF]/80 backdrop-blur border-t border-[rgba(0,0,0,0.05)] z-20">
+            <button
+              disabled={!isFormValid() || isGenerating}
+              onClick={handleDownloadPDF}
+              className={`w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-[13px] tracking-wide transition-all transform active:scale-95 duration-200 bg-[linear-gradient(135deg,#A6EBCF,#84D9B5)] text-[#1B1B1B] shadow-[0_4px_10px_rgba(166,235,207,0.4)] hover:shadow-[0_8px_18px_rgba(166,235,207,0.6)] ${isFormValid()
+                ? "opacity-100"
+                : "opacity-50 cursor-not-allowed grayscale"
+                }`}
+            >
+              {isGenerating ? (
+                <span className="flex items-center gap-2">
+                  <span className="animate-spin rounded-full h-3 w-3 border-b-2 border-[#1B1B1B]"></span>
+                  GENERATING...
+                </span>
+              ) : (
+                <>
+                  <Download className="w-4 h-4" />
+                  DOWNLOAD PDF
+                </>
+              )}
+            </button>
+          </div>
+        </aside>
+
+      </div>
 
       {/* ------------------------------------------------------------
         FULL SCREEN MODAL
-       ------------------------------------------------------------ */}
+        ------------------------------------------------------------ */}
       {isFullScreen && (
-        <div className="fixed inset-0 z-50 bg-gray-900/95 flex flex-col h-screen animate-in fade-in duration-200">
-          <div className="h-16 flex items-center justify-between px-6 bg-gray-900 text-white border-b border-gray-800">
-            <div className="flex items-center gap-3">
-              <FileText className="w-5 h-5 text-blue-400" />
-              <h2 className="font-semibold text-lg tracking-tight">Full Screen Preview</h2>
+        <div className="fixed inset-0 z-50 bg-[#222831]/95 backdrop-blur-lg flex flex-col h-screen animate-fade-in">
+          <div className="h-20 flex items-center justify-between px-10 border-b border-white/10">
+            <div className="flex items-center gap-4">
+              <FileText className="w-6 h-6 text-[#A6EBCF]" />
+              <h2 className="font-display font-bold text-xl tracking-tight text-white">Preview</h2>
             </div>
             <button
               onClick={() => setIsFullScreen(false)}
-              className="p-2 hover:bg-gray-800 rounded-lg text-gray-400 hover:text-white transition-colors"
+              className="p-3 bg-white/5 hover:bg-white/10 rounded-full text-white transition-colors"
             >
               <X className="w-6 h-6" />
             </button>
           </div>
 
-          <div className="flex-1 overflow-auto flex justify-center p-12 bg-gray-900/50 custom-scrollbar backdrop-blur-sm">
-            <div className="shadow-2xl origin-top" style={{ width: "210mm", minHeight: "297mm", backgroundColor: "white" }}>
-              {/* Using a separate scale for fullscreen? Or just standard A4. 
-                      Standard A4 is readable on desktop. 
-                      We'll render it at scale 1 or slightly larger if needed.
-                      For now, regular size (no transform) is essentially "100%".
-                  */}
-              <ResumePreview resumeData={resumeData} />
+          <div className="flex-1 overflow-y-auto flex justify-center p-16 custom-scrollbar">
+            <div className="shadow-[0_0_50px_rgba(0,0,0,0.5)]">
+              <ResumePreview
+                resumeData={resumeData}
+                sectionOrder={sectionOrder}
+              />
             </div>
           </div>
         </div>
       )}
 
       {/* ------------------------------------------------------------
-        IMPORT MODAL
-       ------------------------------------------------------------ */}
+        IMPORT MODAL (Dark Theme)
+        ------------------------------------------------------------ */}
       {
         showImportModal && (
-          <div className="fixed inset-0 bg-black/30 flex items-center justify-center p-6 z-50">
-            <div className="bg-white rounded-xl max-w-3xl w-full p-6 shadow-lg">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-semibold">Import Resume Data</h2>
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center p-6 z-50 animate-fade-in">
+            <div className="glass-panel bg-[#1A2029]/90 border border-white/10 rounded-3xl max-w-2xl w-full p-8 shadow-2xl relative overflow-hidden">
+
+              {/* Decor */}
+              <div className="absolute top-0 right-0 w-32 h-32 bg-[#A6EBCF] opacity-10 blur-[60px] rounded-full"></div>
+
+              <div className="flex justify-between items-center mb-8 relative z-10">
+                <h2 className="text-2xl font-display font-bold text-white">Import Data</h2>
                 <button
                   onClick={() => setShowImportModal(false)}
-                  className="text-gray-600 hover:text-gray-900"
+                  className="text-gray-400 hover:text-white transition-colors"
                 >
                   <X className="w-6 h-6" />
                 </button>
               </div>
 
-              <div className="space-y-4">
-                {/* Modal Content */}
-                <div className="p-6">
-                  <div className="grid grid-cols-1 gap-3">
+              <div className="space-y-4 relative z-10">
+                {/* 1. Upload Resume */}
+                <button
+                  onClick={() => {
+                    fileInputRef.current?.click();
+                    setIsParsingResume(true);
+                  }}
+                  className="w-full group flex items-start gap-5 p-5 rounded-2xl bg-white/5 border border-white/5 hover:border-[#A6EBCF] hover:bg-white/10 transition-all text-left"
+                >
+                  <div className="p-3 bg-blue-500/20 text-blue-400 rounded-xl group-hover:bg-[#A6EBCF] group-hover:text-[#222831] transition-colors">
+                    <FileUp className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-lg text-white group-hover:text-[#A6EBCF] transition-colors">Upload Resume File</h3>
+                    <p className="text-sm text-gray-400 mt-1">Auto-fill from existing PDF/Doc</p>
+                  </div>
+                </button>
 
-                    {/* 1. Upload Resume */}
+                {/* 2. Paste JSON */}
+                <div className="p-5 rounded-2xl bg-white/5 border border-white/5 hover:border-[#A6EBCF] transition-all focus-within:ring-1 focus-within:ring-[#A6EBCF]">
+                  <div className="flex items-center gap-3 mb-4">
+                    <FileJson className="w-5 h-5 text-purple-400" />
+                    <span className="font-bold text-white">Paste JSON</span>
+                  </div>
+                  <textarea
+                    value={jsonInput}
+                    onChange={(e) => setJsonInput(e.target.value)}
+                    placeholder="Paste resume JSON data here..."
+                    className="w-full h-24 p-4 bg-[#0E1116] rounded-xl border border-white/10 text-sm text-gray-300 focus:outline-none focus:border-[#A6EBCF] resize-none font-mono tracking-tight"
+                  />
+                  <div className="mt-3 flex justify-end">
                     <button
-                      onClick={() => {
-                        // This relies on the file input below
-                        fileInputRef.current?.click();
-                        setIsParsingResume(true);
-                      }}
-                      className="w-full group flex items-start gap-4 p-4 rounded-xl border border-gray-200 hover:border-blue-500 hover:bg-blue-50/50 transition-all text-left"
+                      onClick={handleImportJSON}
+                      disabled={!jsonInput.trim()}
+                      className="px-5 py-2 bg-[#A6EBCF] text-[#222831] font-bold rounded-lg hover:bg-teal-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      <div className="p-3 bg-blue-100 text-blue-600 rounded-lg group-hover:bg-blue-600 group-hover:text-white transition-colors">
-                        <FileUp className="w-6 h-6" />
-                      </div>
-                      <div>
-                        <h3 className="font-bold text-gray-900 group-hover:text-blue-700">Upload Resume File</h3>
-                        <p className="text-xs text-gray-500 mt-1">Support for PDF soon (currently uses text/parsing)</p>
-                      </div>
+                      Import
                     </button>
-
-                    {/* 2. Paste JSON */}
-                    <div className="p-4 rounded-xl border border-gray-200 hover:border-blue-500 transition-all focus-within:ring-2 focus-within:ring-blue-500/20">
-                      <div className="flex items-center gap-3 mb-3">
-                        <div className="p-2 bg-purple-100 text-purple-600 rounded-lg">
-                          <FileJson className="w-5 h-5" />
-                        </div>
-                        <span className="font-bold text-gray-900">Paste JSON/Text</span>
-                      </div>
-                      <textarea
-                        value={jsonInput}
-                        onChange={(e) => setJsonInput(e.target.value)}
-                        placeholder="Paste resume JSON data here..."
-                        className="w-full h-24 p-3 bg-gray-50 rounded-lg border-0 text-sm focus:ring-0 resize-none font-mono"
-                      />
-                      <div className="mt-2 flex justify-end">
-                        <button
-                          onClick={handleImportJSON}
-                          disabled={!jsonInput.trim()}
-                          className="px-4 py-2 bg-gray-900 text-white text-sm font-semibold rounded-lg hover:bg-black disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          Import JSON
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* 3. Upload JSON */}
-                    <button
-                      onClick={() => {
-                        fileInputRef.current?.click();
-                        setIsParsingResume(false); // Mode switch
-                      }}
-                      className="w-full group flex items-center gap-4 p-4 rounded-xl border border-gray-200 hover:border-gray-400 hover:bg-gray-50 transition-all text-left"
-                    >
-                      <div className="p-2 bg-gray-100 text-gray-600 rounded-lg group-hover:bg-gray-200">
-                        <Upload className="w-5 h-5" />
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-gray-700">Upload JSON File</h3>
-                        <p className="text-xs text-gray-400">Restore from a previously exported file</p>
-                      </div>
-                    </button>
-
-                    {/* 4. LinkedIn (Disabled) */}
-                    <div className="relative group opacity-60">
-                      <button disabled className="w-full flex items-center gap-4 p-4 rounded-xl border border-gray-200 bg-gray-50 cursor-not-allowed text-left">
-                        <div className="p-2 bg-blue-50 text-blue-400 rounded-lg">
-                          <Linkedin className="w-5 h-5" />
-                        </div>
-                        <div>
-                          <h3 className="font-semibold text-gray-500">Import from LinkedIn</h3>
-                          <p className="text-xs text-gray-400">Coming soon</p>
-                        </div>
-                      </button>
-                    </div>
-
-                    {/* Export Option inside modal for completeness */}
-                    <div className="pt-4 mt-2 border-t">
-                      <button
-                        onClick={handleExportJSON}
-                        className="w-full flex items-center justify-center gap-2 text-sm text-gray-600 hover:text-blue-600 py-2"
-                      >
-                        <FileJson className="w-4 h-4" />
-                        Export Current Data as JSON
-                      </button>
-                    </div>
-
                   </div>
                 </div>
 
-                {/* Hidden Input for Files */}
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  className="hidden"
-                  onChange={handleImportFile}
-                  accept=".json,.txt"
-                />
+                <div className="pt-6 mt-4 border-t border-white/10 flex justify-center">
+                  <button
+                    onClick={handleExportJSON}
+                    className="text-sm text-gray-400 hover:text-[#A6EBCF] flex items-center gap-2 transition-colors"
+                  >
+                    <FileJson className="w-4 h-4" />
+                    Export Data as JSON
+                  </button>
+                </div>
               </div>
+
+              {/* Hidden Input for Files */}
+              <input
+                type="file"
+                ref={fileInputRef}
+                className="hidden"
+                onChange={handleImportFile}
+                accept=".json,.txt"
+              />
+
             </div>
           </div>
         )
