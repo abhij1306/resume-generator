@@ -112,7 +112,29 @@ export default function App() {
     const reader = new FileReader();
     reader.onload = (event) => {
       try {
-        setResumeData(JSON.parse(event.target.result));
+        const importedData = JSON.parse(event.target.result);
+        // Merge with default structure to ensure all fields exist
+        const mergedData = {
+          personal: {
+            fullName: "",
+            email: "",
+            phone: "",
+            location: "",
+            linkedin: "",
+            portfolio: "",
+            summary: "",
+            ...importedData.personal,
+          },
+          experience: importedData.experience || [],
+          education: importedData.education || [],
+          skills: {
+            technical: importedData.skills?.technical || [],
+            soft: importedData.skills?.soft || [],
+          },
+          projects: importedData.projects || [],
+          certifications: importedData.certifications || [],
+        };
+        setResumeData(mergedData);
         setShowImportModal(false);
       } catch {
         alert("Invalid JSON file.");
@@ -124,7 +146,29 @@ export default function App() {
 
   const handleImportJSON = () => {
     try {
-      setResumeData(JSON.parse(jsonInput));
+      const importedData = JSON.parse(jsonInput);
+      // Merge with default structure to ensure all fields exist
+      const mergedData = {
+        personal: {
+          fullName: "",
+          email: "",
+          phone: "",
+          location: "",
+          linkedin: "",
+          portfolio: "",
+          summary: "",
+          ...importedData.personal,
+        },
+        experience: importedData.experience || [],
+        education: importedData.education || [],
+        skills: {
+          technical: importedData.skills?.technical || [],
+          soft: importedData.skills?.soft || [],
+        },
+        projects: importedData.projects || [],
+        certifications: importedData.certifications || [],
+      };
+      setResumeData(mergedData);
       setJsonInput("");
       setShowImportModal(false);
     } catch {
@@ -180,11 +224,10 @@ export default function App() {
               <button
                 key={i}
                 onClick={() => setCurrentStep(i)}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition ${
-                  active
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition ${active
                     ? "bg-blue-50 text-blue-700 font-semibold"
                     : "text-gray-700 hover:bg-gray-100"
-                }`}
+                  }`}
               >
                 <Icon className={`w-5 h-5`} />
                 {s.label}
@@ -258,11 +301,10 @@ export default function App() {
             <button
               disabled={!isFormValid() || isGenerating}
               onClick={handleDownloadPDF}
-              className={`flex items-center gap-2 px-6 py-3 rounded-lg font-semibold ${
-                isFormValid()
+              className={`flex items-center gap-2 px-6 py-3 rounded-lg font-semibold ${isFormValid()
                   ? "bg-blue-600 text-white hover:bg-blue-700"
                   : "bg-gray-300 text-gray-500 cursor-not-allowed"
-              }`}
+                }`}
             >
               <Download className="w-4 h-4" />
               {isGenerating ? "Generating..." : "Download PDF"}
