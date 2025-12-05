@@ -136,7 +136,7 @@ export default function App() {
       location: exp.location || "",
       startDate: exp.startDate || exp.start_date || exp.dates?.split("--")[0]?.trim() || "",
       endDate: exp.endDate || exp.end_date || exp.dates?.split("--")[1]?.trim() || "",
-      responsibilities: exp.responsibilities || exp.bullets || exp.description ? [exp.description] : [],
+      responsibilities: exp.responsibilities || exp.bullets || (exp.description ? [exp.description] : []),
     }));
 
     // Normalize education

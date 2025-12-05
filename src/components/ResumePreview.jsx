@@ -121,7 +121,7 @@ export default function ResumePreview({ resumeData }) {
                 {exp.responsibilities?.length > 0 && (
                   <ul className="list-disc ml-5 mt-2 text-sm text-gray-800 space-y-1">
                     {exp.responsibilities
-                      .filter((r) => r.trim())
+                      .filter((r) => r && typeof r === "string" && r.trim())
                       .map((resp, j) => (
                         <li key={j}>{resp}</li>
                       ))}
