@@ -1,4 +1,6 @@
 import { Plus, Trash2 } from "lucide-react";
+import { ExperienceSection } from "./ExperienceSection";
+import { ProjectsSection } from "./ProjectsSection";
 
 /** -----------------------------
  * UI HELPER COMPONENTS
@@ -42,11 +44,12 @@ export default function ResumeForm({
 
   /** -----------------------------
    * GENERIC ADD / REMOVE / UPDATE
+   * (Kept for Education/Skills)
    -----------------------------*/
   const addItem = (section, template) => {
     setResumeData((prev) => ({
       ...prev,
-      [section]: [...prev[section], template],
+      [section]: [...prev[section], { ...template, id: crypto.randomUUID() }],
     }));
   };
 
@@ -62,52 +65,6 @@ export default function ResumeForm({
       ...prev,
       [section]: prev[section].map((obj, i) =>
         i === index ? { ...obj, [field]: value } : obj
-      ),
-    }));
-  };
-
-  /** -----------------------------
-   * EXPERIENCE RESPONSIBILITIES
-   -----------------------------*/
-  const addResponsibility = (i) => {
-    setResumeData((prev) => ({
-      ...prev,
-      experience: prev.experience.map((exp, idx) =>
-        idx === i
-          ? { ...exp, responsibilities: [...exp.responsibilities, ""] }
-          : exp
-      ),
-    }));
-  };
-
-  const updateResponsibility = (i, j, value) => {
-    setResumeData((prev) => ({
-      ...prev,
-      experience: prev.experience.map((exp, idx) =>
-        idx === i
-          ? {
-            ...exp,
-            responsibilities: exp.responsibilities.map((r, k) =>
-              k === j ? value : r
-            ),
-          }
-          : exp
-      ),
-    }));
-  };
-
-  const removeResponsibility = (i, j) => {
-    setResumeData((prev) => ({
-      ...prev,
-      experience: prev.experience.map((exp, idx) =>
-        idx === i
-          ? {
-            ...exp,
-            responsibilities: exp.responsibilities.filter(
-              (_, k) => k !== j
-            ),
-          }
-          : exp
       ),
     }));
   };
@@ -147,7 +104,7 @@ export default function ResumeForm({
   ----------------------------------------------------------------*/
   if (currentStep === 0)
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Input
             label="Full Name *"
@@ -200,134 +157,15 @@ export default function ResumeForm({
     );
 
   /* ---------------------------------------------------------------
-     EXPERIENCE
+     EXPERIENCE (Modularized)
   ----------------------------------------------------------------*/
   if (currentStep === 1)
     return (
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <h3 className="font-semibold text-gray-900 text-lg">
-            Work Experience
-          </h3>
-
-          <button
-            onClick={() =>
-              addItem("experience", {
-                title: "",
-                company: "",
-                location: "",
-                startDate: "",
-                endDate: "",
-                responsibilities: [""],
-              })
-            }
-            className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-          >
-            <Plus className="w-4 h-4" />
-            Add Experience
-          </button>
-        </div>
-
-        {resumeData.experience.map((exp, i) => (
-          <div
-            key={i}
-            className="p-4 border rounded-lg shadow-sm bg-white space-y-4"
-          >
-            <div className="flex justify-between items-center">
-              <h4 className="font-semibold text-gray-800">
-                Experience {i + 1}
-              </h4>
-              <button
-                onClick={() => removeItem("experience", i)}
-                className="text-red-600 hover:text-red-700"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Input
-                label="Job Title"
-                value={exp.title}
-                onChange={(e) =>
-                  updateItem("experience", i, "title", e.target.value)
-                }
-              />
-
-              <Input
-                label="Company"
-                value={exp.company}
-                onChange={(e) =>
-                  updateItem("experience", i, "company", e.target.value)
-                }
-              />
-
-              <Input
-                label="Location"
-                value={exp.location}
-                onChange={(e) =>
-                  updateItem("experience", i, "location", e.target.value)
-                }
-              />
-
-              <div className="grid grid-cols-2 gap-2">
-                <Input
-                  label="Start"
-                  value={exp.startDate}
-                  onChange={(e) =>
-                    updateItem("experience", i, "startDate", e.target.value)
-                  }
-                />
-                <Input
-                  label="End"
-                  value={exp.endDate}
-                  onChange={(e) =>
-                    updateItem("experience", i, "endDate", e.target.value)
-                  }
-                />
-              </div>
-            </div>
-
-            {/* Responsibilities */}
-            <div className="space-y-2">
-              <div className="flex justify-between items-center">
-                <label className="font-medium text-sm text-gray-700">
-                  Responsibilities
-                </label>
-                <button
-                  onClick={() => addResponsibility(i)}
-                  className="text-blue-600 hover:text-blue-700 flex items-center gap-1 text-sm"
-                >
-                  <Plus className="w-3 h-3" /> Add
-                </button>
-              </div>
-
-              {exp.responsibilities.map((r, j) => (
-                <div key={j} className="flex gap-2">
-                  <input
-                    value={r}
-                    onChange={(e) =>
-                      updateResponsibility(i, j, e.target.value)
-                    }
-                    className="flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                  <button
-                    onClick={() => removeResponsibility(i, j)}
-                    className="text-red-600 hover:text-red-700"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
-
-        {resumeData.experience.length === 0 && (
-          <p className="text-center text-gray-500">
-            No experience added yet.
-          </p>
-        )}
+      <div className="animate-in fade-in slide-in-from-right-4 duration-300">
+        <ExperienceSection
+          experience={resumeData.experience}
+          setResumeData={setResumeData}
+        />
       </div>
     );
 
@@ -336,7 +174,7 @@ export default function ResumeForm({
   ----------------------------------------------------------------*/
   if (currentStep === 2)
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
         <div className="flex justify-between items-center">
           <h3 className="font-semibold text-gray-900 text-lg">Education</h3>
 
@@ -360,7 +198,7 @@ export default function ResumeForm({
 
         {resumeData.education.map((edu, i) => (
           <div
-            key={i}
+            key={i} // Index key since education isn't DND yet
             className="p-4 border rounded-lg shadow-sm bg-white space-y-4"
           >
             <div className="flex justify-between items-center">
@@ -440,7 +278,7 @@ export default function ResumeForm({
   ----------------------------------------------------------------*/
   if (currentStep === 3)
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
         {/* Technical Skills */}
         <div className="p-4 border rounded-lg bg-white shadow-sm space-y-3">
           <div className="flex justify-between">
@@ -512,87 +350,15 @@ export default function ResumeForm({
     );
 
   /* ---------------------------------------------------------------
-     PROJECTS
+     PROJECTS (Modularized)
   ----------------------------------------------------------------*/
   if (currentStep === 4)
     return (
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <h3 className="font-semibold text-gray-900 text-lg">Projects</h3>
-
-          <button
-            onClick={() =>
-              addItem("projects", {
-                name: "",
-                technologies: "",
-                description: "",
-                link: "",
-              })
-            }
-            className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-          >
-            <Plus className="w-4 h-4" />
-            Add Project
-          </button>
-        </div>
-
-        {resumeData.projects.map((project, i) => (
-          <div
-            key={i}
-            className="p-4 border rounded-lg bg-white shadow-sm space-y-4"
-          >
-            <div className="flex justify-between items-center">
-              <h4 className="font-semibold text-gray-800">
-                Project {i + 1}
-              </h4>
-              <button
-                onClick={() => removeItem("projects", i)}
-                className="text-red-600 hover:text-red-700"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
-            </div>
-
-            <Input
-              label="Project Name"
-              value={project.name}
-              onChange={(e) =>
-                updateItem("projects", i, "name", e.target.value)
-              }
-            />
-
-            <Input
-              label="Technologies"
-              value={project.technologies}
-              onChange={(e) =>
-                updateItem("projects", i, "technologies", e.target.value)
-              }
-            />
-
-            <TextArea
-              label="Description"
-              rows="3"
-              value={project.description}
-              onChange={(e) =>
-                updateItem("projects", i, "description", e.target.value)
-              }
-            />
-
-            <Input
-              label="Link (optional)"
-              value={project.link}
-              onChange={(e) =>
-                updateItem("projects", i, "link", e.target.value)
-              }
-            />
-          </div>
-        ))}
-
-        {resumeData.projects.length === 0 && (
-          <p className="text-center text-gray-500">
-            No projects added yet.
-          </p>
-        )}
+      <div className="animate-in fade-in slide-in-from-right-4 duration-300">
+        <ProjectsSection
+          projects={resumeData.projects}
+          setResumeData={setResumeData}
+        />
       </div>
     );
 
