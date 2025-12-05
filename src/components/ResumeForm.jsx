@@ -1,5 +1,30 @@
 import { Plus, Trash2 } from "lucide-react";
 
+/** -----------------------------
+ * UI HELPER COMPONENTS
+ -----------------------------*/
+const Input = ({ label, ...props }) => (
+  <div className="space-y-1">
+    {label && (
+      <label className="text-sm font-medium text-gray-700">{label}</label>
+    )}
+    <input
+      {...props}
+      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+    />
+  </div>
+);
+
+const TextArea = ({ label, ...props }) => (
+  <div className="space-y-1">
+    <label className="text-sm font-medium text-gray-700">{label}</label>
+    <textarea
+      {...props}
+      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+    />
+  </div>
+);
+
 export default function ResumeForm({
   resumeData,
   setResumeData,
@@ -61,11 +86,11 @@ export default function ResumeForm({
       experience: prev.experience.map((exp, idx) =>
         idx === i
           ? {
-              ...exp,
-              responsibilities: exp.responsibilities.map((r, k) =>
-                k === j ? value : r
-              ),
-            }
+            ...exp,
+            responsibilities: exp.responsibilities.map((r, k) =>
+              k === j ? value : r
+            ),
+          }
           : exp
       ),
     }));
@@ -77,11 +102,11 @@ export default function ResumeForm({
       experience: prev.experience.map((exp, idx) =>
         idx === i
           ? {
-              ...exp,
-              responsibilities: exp.responsibilities.filter(
-                (_, k) => k !== j
-              ),
-            }
+            ...exp,
+            responsibilities: exp.responsibilities.filter(
+              (_, k) => k !== j
+            ),
+          }
           : exp
       ),
     }));
@@ -111,31 +136,6 @@ export default function ResumeForm({
       },
     }));
   };
-
-  /** -----------------------------
-   * UI HELPERS
-   -----------------------------*/
-  const Input = ({ label, ...props }) => (
-    <div className="space-y-1">
-      {label && (
-        <label className="text-sm font-medium text-gray-700">{label}</label>
-      )}
-      <input
-        {...props}
-        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-      />
-    </div>
-  );
-
-  const TextArea = ({ label, ...props }) => (
-    <div className="space-y-1">
-      <label className="text-sm font-medium text-gray-700">{label}</label>
-      <textarea
-        {...props}
-        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-      />
-    </div>
-  );
 
   /** ============================================================
    *  RENDER SECTIONS
