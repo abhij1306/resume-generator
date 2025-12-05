@@ -1,109 +1,57 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
-@layer base {
-  body {
-    @apply bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 min-h-screen;
+/* GLOBAL BODY */
+body {
+  background-color: #f3f4f6;
+  /* gray-100 */
+  min-height: 100vh;
+}
+
+/* GLASS EFFECT */
+.glass-effect {
+  background-color: white;
+  backdrop-filter: blur(16px);
+  border: 1px solid white;
+  box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+}
+
+/* ANIMATIONS */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
-@layer utilities {
-  .glass-effect {
-    @apply bg-white/80 backdrop-blur-lg border border-white/20 shadow-xl;
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
   }
 
-  .resume-section {
-    @apply mb-4 last:mb-0;
-  }
-
-  .resume-heading {
-    @apply text-base font-bold text-[#003366] mb-2 pb-1 border-b-2 border-[#003366] uppercase tracking-wide;
-  }
-
-  .resume-text {
-    @apply text-sm text-gray-800 leading-relaxed;
-  }
-
-  .resume-subheading {
-    @apply text-sm font-bold text-gray-900;
-  }
-
-  .resume-date {
-    @apply text-sm text-gray-700 italic;
-  }
-
-  /* Custom Animations */
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
-      transform: translateY(-10px);
-    }
-
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  @keyframes slideUp {
-    from {
-      opacity: 0;
-      transform: translateY(20px);
-    }
-
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  @keyframes gradient {
-
-    0%,
-    100% {
-      background-position: 0% 50%;
-    }
-
-    50% {
-      background-position: 100% 50%;
-    }
-  }
-
-  @keyframes pulseSubtle {
-
-    0%,
-    100% {
-      opacity: 1;
-    }
-
-    50% {
-      opacity: 0.8;
-    }
-  }
-
-  .animate-fade-in {
-    animation: fadeIn 0.6s ease-out;
-  }
-
-  .animate-slide-up {
-    animation: slideUp 0.8s ease-out;
-  }
-
-  .animate-gradient {
-    background-size: 200% 200%;
-    animation: gradient 3s ease infinite;
-  }
-
-  .animate-pulse-subtle {
-    animation: pulseSubtle 2s ease-in-out infinite;
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
-/* Print styles for ATS-friendly PDF */
+.animate-fade-in {
+  animation: fadeIn 0.6s ease-out;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.8s ease-out;
+}
+
+/* PRINT */
 @media print {
   body {
-    @apply bg-white;
+    background: white !important;
   }
 
   .no-print {
@@ -112,6 +60,5 @@
 
   .resume-preview {
     box-shadow: none !important;
-    border: none !important;
   }
 }

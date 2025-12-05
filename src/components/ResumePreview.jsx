@@ -1,209 +1,227 @@
-import { Mail, Phone, MapPin, Linkedin, Globe } from 'lucide-react'
+import React from "react";
 
-const ResumePreview = ({ resumeData }) => {
-    const { personal, education, experience, skills, certifications, projects } = resumeData
+export default function ResumePreview({ resumeData }) {
+  const { personal, education, experience, skills, projects, certifications } =
+    resumeData;
 
+  const Section = ({ title, children }) => (
+    <div className="mb-6">
+      <h2 className="text-lg font-semibold text-gray-900 border-b pb-1 mb-3 tracking-wide">
+        {title}
+      </h2>
+      {children}
+    </div>
+  );
+
+  if (!personal.fullName) {
     return (
-        <div id="resume-preview" className="bg-white p-8 text-gray-900" style={{ fontFamily: 'Georgia, serif' }}>
-            {/* Header Section */}
-            {personal.fullName && (
-                <div className="mb-6 text-center">
-                    <h1 className="text-3xl font-bold text-gray-900 mb-2 border-b-2 border-gray-300 pb-2">
-                        {personal.fullName}
-                    </h1>
+      <div className="text-center py-16 text-gray-400">
+        <div className="text-6xl mb-4">📄</div>
+        <p className="text-xl font-semibold mb-2">Resume Preview</p>
+        <p className="text-gray-500">
+          Start filling out the form to see your resume preview
+        </p>
+      </div>
+    );
+  }
 
-                    {/* Contact Information */}
-                    <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm text-gray-700 mt-4">
-                        {personal.location && (
-                            <div className="flex items-center gap-2 bg-gray-50 px-3 py-1 rounded-full">
-                                <MapPin className="w-4 h-4 text-gray-600" />
-                                <span>{personal.location}</span>
-                            </div>
-                        )}
-                        {personal.email && (
-                            <div className="flex items-center gap-2 bg-gray-50 px-3 py-1 rounded-full">
-                                <Mail className="w-4 h-4 text-gray-600" />
-                                <span className="truncate max-w-[250px]">{personal.email}</span>
-                            </div>
-                        )}
-                        {personal.phone && (
-                            <div className="flex items-center gap-2 bg-gray-50 px-3 py-1 rounded-full">
-                                <Phone className="w-4 h-4 text-gray-600" />
-                                <span>{personal.phone}</span>
-                            </div>
-                        )}
-                        {personal.linkedin && (
-                            <div className="flex items-center gap-2 bg-gray-50 px-3 py-1 rounded-full">
-                                <Linkedin className="w-4 h-4 text-gray-600" />
-                                <span className="truncate max-w-[250px]">{personal.linkedin}</span>
-                            </div>
-                        )}
-                        {personal.portfolio && (
-                            <div className="flex items-center gap-2 bg-gray-50 px-3 py-1 rounded-full">
-                                <Globe className="w-4 h-4 text-gray-600" />
-                                <span className="truncate max-w-[250px]">{personal.portfolio}</span>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            )}
+  return (
+    <div
+      id="resume-preview"
+      className="bg-white p-8 text-gray-900 leading-relaxed"
+      style={{ fontFamily: "Inter, sans-serif" }}
+    >
+      {/* -----------------------------------------------------------
+         HEADER
+      ------------------------------------------------------------ */}
+      <div className="text-center mb-8">
+        <h1 className="text-3xl font-bold tracking-tight">
+          {personal.fullName}
+        </h1>
 
-            {/* Professional Summary */}
-            {personal.summary && (
-                <div className="mb-6">
-                    <h2 className="text-lg font-bold text-gray-900 mb-2 uppercase tracking-wide border-l-4 border-blue-600 pl-3">
-                        Professional Summary
-                    </h2>
-                    <p className="text-gray-800 leading-relaxed text-sm">{personal.summary}</p>
-                </div>
-            )}
-
-            {/* Core Competencies / Skills */}
-            {(skills.technical.length > 0 || skills.soft.length > 0) && (
-                <div className="mb-6">
-                    <h2 className="text-lg font-bold text-gray-900 mb-2 uppercase tracking-wide border-l-4 border-blue-600 pl-3">
-                        Core Competencies
-                    </h2>
-                    <div className="space-y-2">
-                        {skills.technical.length > 0 && (
-                            <div className="bg-gray-50 p-3 rounded-lg">
-                                <span className="font-semibold text-gray-900">Technical Skills:</span>
-                                <div className="mt-1 text-gray-700">
-                                    {skills.technical.join(' • ')}
-                                </div>
-                            </div>
-                        )}
-                        {skills.soft.length > 0 && (
-                            <div className="bg-gray-50 p-3 rounded-lg">
-                                <span className="font-semibold text-gray-900">Soft Skills:</span>
-                                <div className="mt-1 text-gray-700">
-                                    {skills.soft.join(' • ')}
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            )}
-
-            {/* Professional Experience */}
-            {experience.length > 0 && (
-                <div className="mb-6">
-                    <h2 className="text-lg font-bold text-gray-900 mb-2 uppercase tracking-wide border-l-4 border-blue-600 pl-3">
-                        Professional Experience
-                    </h2>
-                    <div className="space-y-4">
-                        {experience.map((exp, index) => (
-                            <div key={index} className="border-l-2 border-gray-300 pl-4">
-                                <div className="flex justify-between items-start">
-                                    <div>
-                                        <h3 className="font-bold text-gray-900 text-lg">{exp.title}</h3>
-                                        <p className="text-gray-700">{exp.company}</p>
-                                        {exp.location && <p className="text-gray-600 text-sm">{exp.location}</p>}
-                                    </div>
-                                    <div className="text-right text-gray-600 text-sm">
-                                        {exp.startDate} – {exp.endDate || 'Present'}
-                                    </div>
-                                </div>
-                                {exp.responsibilities && exp.responsibilities.length > 0 && (
-                                    <ul className="list-disc list-outside ml-5 mt-2 space-y-1">
-                                        {exp.responsibilities.filter(r => r.trim()).map((resp, idx) => (
-                                            <li key={idx} className="text-gray-800 text-sm">{resp}</li>
-                                        ))}
-                                    </ul>
-                                )}
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            )}
-
-            {/* Education */}
-            {education.length > 0 && (
-                <div className="mb-6">
-                    <h2 className="text-lg font-bold text-gray-900 mb-2 uppercase tracking-wide border-l-4 border-blue-600 pl-3">
-                        Education
-                    </h2>
-                    <div className="space-y-3">
-                        {education.map((edu, index) => (
-                            <div key={index} className="border-l-2 border-gray-300 pl-4">
-                                <div className="flex justify-between items-start">
-                                    <div>
-                                        <h3 className="font-bold text-gray-900">{edu.degree}</h3>
-                                        <p className="text-gray-700">{edu.institution}</p>
-                                        {edu.location && <p className="text-gray-600 text-sm">{edu.location}</p>}
-                                    </div>
-                                    <div className="text-right text-gray-600 text-sm">
-                                        {edu.startDate} – {edu.endDate}
-                                    </div>
-                                </div>
-                                {edu.gpa && <div className="text-gray-600 text-sm mt-1">GPA: {edu.gpa}</div>}
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            )}
-
-            {/* Projects */}
-            {projects.length > 0 && (
-                <div className="mb-6">
-                    <h2 className="text-lg font-bold text-gray-900 mb-2 uppercase tracking-wide border-l-4 border-blue-600 pl-3">
-                        Projects
-                    </h2>
-                    <div className="space-y-3">
-                        {projects.map((project, index) => (
-                            <div key={index} className="border-l-2 border-gray-300 pl-4">
-                                <div className="flex justify-between items-start">
-                                    <div>
-                                        <h3 className="font-bold text-gray-900">{project.name}</h3>
-                                        {project.technologies && (
-                                            <p className="text-gray-700 text-sm">Technologies: {project.technologies}</p>
-                                        )}
-                                        {project.description && (
-                                            <p className="text-gray-800 text-sm mt-1">{project.description}</p>
-                                        )}
-                                    </div>
-                                    {project.link && (
-                                        <div className="text-right text-gray-600 text-sm">
-                                            <a href={project.link} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800">
-                                                View Project →
-                                            </a>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            )}
-
-            {/* Certifications */}
-            {certifications.length > 0 && (
-                <div className="mb-6">
-                    <h2 className="text-lg font-bold text-gray-900 mb-2 uppercase tracking-wide border-l-4 border-blue-600 pl-3">
-                        Certifications
-                    </h2>
-                    <ul className="list-disc list-outside ml-5 space-y-2">
-                        {certifications.map((cert, index) => (
-                            <li key={index} className="text-gray-800">
-                                <span className="font-semibold">{cert.name}</span>
-                                {cert.issuer && <span className="text-gray-700"> — {cert.issuer}</span>}
-                                {cert.date && <span className="text-gray-600 text-sm"> ({cert.date})</span>}
-                            </li>
-                        ))}
-                    </ul>
-                </div>
-            )}
-
-            {/* Empty State */}
-            {!personal.fullName && (
-                <div className="text-center py-16 text-gray-400">
-                    <div className="text-6xl mb-4">📄</div>
-                    <p className="text-xl font-semibold mb-2">Resume Preview</p>
-                    <p className="text-gray-500">Start filling out the form to see your resume preview</p>
-                </div>
-            )}
+        <div className="flex flex-wrap justify-center gap-4 text-sm text-gray-700 mt-3">
+          {personal.email && <span>{personal.email}</span>}
+          {personal.phone && <span>{personal.phone}</span>}
+          {personal.location && <span>{personal.location}</span>}
+          {personal.linkedin && (
+            <a
+              href={personal.linkedin}
+              className="text-blue-700 hover:underline"
+              target="_blank"
+            >
+              LinkedIn
+            </a>
+          )}
+          {personal.portfolio && (
+            <a
+              href={personal.portfolio}
+              className="text-blue-700 hover:underline"
+              target="_blank"
+            >
+              Portfolio
+            </a>
+          )}
         </div>
-    )
-}
+      </div>
 
-export default ResumePreview
+      {/* -----------------------------------------------------------
+         SUMMARY
+      ------------------------------------------------------------ */}
+      {personal.summary && (
+        <Section title="Professional Summary">
+          <p className="text-gray-800 text-sm">{personal.summary}</p>
+        </Section>
+      )}
+
+      {/* -----------------------------------------------------------
+         SKILLS
+      ------------------------------------------------------------ */}
+      {(skills.technical.length > 0 || skills.soft.length > 0) && (
+        <Section title="Core Skills">
+          <div className="grid grid-cols-1 gap-2 text-sm">
+            {skills.technical.length > 0 && (
+              <div>
+                <span className="font-semibold">Technical:</span>{" "}
+                {skills.technical.join(", ")}
+              </div>
+            )}
+            {skills.soft.length > 0 && (
+              <div>
+                <span className="font-semibold">Soft Skills:</span>{" "}
+                {skills.soft.join(", ")}
+              </div>
+            )}
+          </div>
+        </Section>
+      )}
+
+      {/* -----------------------------------------------------------
+         EXPERIENCE
+      ------------------------------------------------------------ */}
+      {experience.length > 0 && (
+        <Section title="Professional Experience">
+          <div className="space-y-5">
+            {experience.map((exp, idx) => (
+              <div key={idx}>
+                <div className="flex justify-between">
+                  <div>
+                    <p className="font-semibold text-gray-900">
+                      {exp.title || "Role"}
+                    </p>
+                    <p className="text-gray-700 text-sm">
+                      {exp.company || ""}
+                      {exp.location ? ` • ${exp.location}` : ""}
+                    </p>
+                  </div>
+                  <p className="text-gray-600 text-sm whitespace-nowrap">
+                    {exp.startDate} – {exp.endDate || "Present"}
+                  </p>
+                </div>
+
+                {exp.responsibilities?.length > 0 && (
+                  <ul className="list-disc ml-5 mt-2 text-sm text-gray-800 space-y-1">
+                    {exp.responsibilities
+                      .filter((r) => r.trim())
+                      .map((resp, j) => (
+                        <li key={j}>{resp}</li>
+                      ))}
+                  </ul>
+                )}
+              </div>
+            ))}
+          </div>
+        </Section>
+      )}
+
+      {/* -----------------------------------------------------------
+         EDUCATION
+      ------------------------------------------------------------ */}
+      {education.length > 0 && (
+        <Section title="Education">
+          <div className="space-y-4">
+            {education.map((edu, idx) => (
+              <div key={idx}>
+                <div className="flex justify-between">
+                  <div>
+                    <p className="font-semibold text-gray-900">
+                      {edu.degree}
+                    </p>
+                    <p className="text-gray-700 text-sm">{edu.institution}</p>
+                    {edu.location && (
+                      <p className="text-gray-600 text-sm">{edu.location}</p>
+                    )}
+                  </div>
+                  <p className="text-gray-600 text-sm whitespace-nowrap">
+                    {edu.startDate} – {edu.endDate}
+                  </p>
+                </div>
+                {edu.gpa && (
+                  <p className="text-gray-700 text-sm mt-1">GPA: {edu.gpa}</p>
+                )}
+              </div>
+            ))}
+          </div>
+        </Section>
+      )}
+
+      {/* -----------------------------------------------------------
+         PROJECTS
+      ------------------------------------------------------------ */}
+      {projects.length > 0 && (
+        <Section title="Projects">
+          <div className="space-y-4">
+            {projects.map((project, idx) => (
+              <div key={idx}>
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="font-semibold text-gray-900">
+                      {project.name}
+                    </p>
+                    {project.technologies && (
+                      <p className="text-gray-700 text-sm">
+                        {project.technologies}
+                      </p>
+                    )}
+                    {project.description && (
+                      <p className="text-gray-800 text-sm mt-1">
+                        {project.description}
+                      </p>
+                    )}
+                  </div>
+
+                  {project.link && (
+                    <a
+                      href={project.link}
+                      target="_blank"
+                      rel="noopener"
+                      className="text-blue-700 text-sm hover:underline"
+                    >
+                      View →
+                    </a>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </Section>
+      )}
+
+      {/* -----------------------------------------------------------
+         CERTIFICATIONS
+      ------------------------------------------------------------ */}
+      {certifications.length > 0 && (
+        <Section title="Certifications">
+          <ul className="list-disc ml-5 text-sm space-y-1">
+            {certifications.map((cert, idx) => (
+              <li key={idx}>
+                <span className="font-semibold">{cert.name}</span>
+                {cert.issuer && <span> — {cert.issuer}</span>}
+                {cert.date && <span> ({cert.date})</span>}
+              </li>
+            ))}
+          </ul>
+        </Section>
+      )}
+    </div>
+  );
+}
