@@ -105,6 +105,97 @@ export default function App() {
     URL.revokeObjectURL(url);
   };
 
+  /** --------------------------
+   * NORMALIZE IMPORTED DATA
+   ---------------------------*/
+  const normalizeImportedData = (data) => {
+    // Handle different JSON formats
+    const personal = data.personal || data.personal_info || {};
+    const experience = data.experience || [];
+    const education = data.education || [];
+    const skills = data.skills || data.core_competencies || {};
+    const projects = data.projects || [];
+    const certifications = data.certifications || [];
+    const summary = data.summary || personal.summary || "";
+
+    // Normalize personal info
+    const normalizedPersonal = {
+      fullName: personal.fullName || personal.name || "",
+      email: personal.email || "",
+      phone: personal.phone || "",
+      location: personal.location || "",
+      linkedin: personal.linkedin || "",
+      portfolio: personal.portfolio || personal.website || "",
+      summary: summary,
+    };
+
+    // Normalize experience
+    const normalizedExperience = experience.map((exp) => ({
+      title: exp.title || exp.position || "",
+      company: exp.company || exp.organization || "",
+      location: exp.location || "",
+      startDate: exp.startDate || exp.start_date || exp.dates?.split("--")[0]?.trim() || "",
+      endDate: exp.endDate || exp.end_date || exp.dates?.split("--")[1]?.trim() || "",
+      responsibilities: exp.responsibilities || exp.bullets || exp.description ? [exp.description] : [],
+    }));
+
+    // Normalize education
+    const normalizedEducation = education.map((edu) => ({
+      degree: edu.degree || "",
+      institution: edu.institution || edu.school || "",
+      location: edu.location || "",
+      gpa: edu.gpa || "",
+      startDate: edu.startDate || edu.start_date || edu.dates?.split("--")[0]?.trim() || "",
+      endDate: edu.endDate || edu.end_date || edu.dates?.split("--")[1]?.trim() || "",
+    }));
+
+    // Normalize skills
+    let normalizedSkills = {
+      technical: [],
+      soft: [],
+    };
+
+    if (Array.isArray(skills)) {
+      // If skills is an array (like core_competencies), split into technical and soft
+      normalizedSkills.technical = skills.filter(s =>
+        s.toLowerCase().includes("technical") ||
+        s.toLowerCase().includes("product") ||
+        s.toLowerCase().includes("data") ||
+        s.toLowerCase().includes("ai")
+      );
+      normalizedSkills.soft = skills.filter(s =>
+        s.toLowerCase().includes("management") ||
+        s.toLowerCase().includes("leadership") ||
+        s.toLowerCase().includes("problem")
+      );
+      // If no clear split, put all in technical
+      if (normalizedSkills.technical.length === 0 && normalizedSkills.soft.length === 0) {
+        normalizedSkills.technical = skills;
+      }
+    } else {
+      normalizedSkills.technical = skills.technical || [];
+      normalizedSkills.soft = skills.soft || [];
+    }
+
+    // Normalize certifications
+    const normalizedCertifications = Array.isArray(certifications)
+      ? certifications.map((cert) =>
+        typeof cert === "string"
+          ? { name: cert, issuer: "", date: "" }
+          : cert
+      )
+      : [];
+
+    return {
+      personal: normalizedPersonal,
+      experience: normalizedExperience,
+      education: normalizedEducation,
+      skills: normalizedSkills,
+      projects: projects,
+      certifications: normalizedCertifications,
+    };
+  };
+
   const handleImportFile = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -113,28 +204,8 @@ export default function App() {
     reader.onload = (event) => {
       try {
         const importedData = JSON.parse(event.target.result);
-        // Merge with default structure to ensure all fields exist
-        const mergedData = {
-          personal: {
-            fullName: "",
-            email: "",
-            phone: "",
-            location: "",
-            linkedin: "",
-            portfolio: "",
-            summary: "",
-            ...importedData.personal,
-          },
-          experience: importedData.experience || [],
-          education: importedData.education || [],
-          skills: {
-            technical: importedData.skills?.technical || [],
-            soft: importedData.skills?.soft || [],
-          },
-          projects: importedData.projects || [],
-          certifications: importedData.certifications || [],
-        };
-        setResumeData(mergedData);
+        const normalizedData = normalizeImportedData(importedData);
+        setResumeData(normalizedData);
         setShowImportModal(false);
       } catch {
         alert("Invalid JSON file.");
@@ -147,28 +218,8 @@ export default function App() {
   const handleImportJSON = () => {
     try {
       const importedData = JSON.parse(jsonInput);
-      // Merge with default structure to ensure all fields exist
-      const mergedData = {
-        personal: {
-          fullName: "",
-          email: "",
-          phone: "",
-          location: "",
-          linkedin: "",
-          portfolio: "",
-          summary: "",
-          ...importedData.personal,
-        },
-        experience: importedData.experience || [],
-        education: importedData.education || [],
-        skills: {
-          technical: importedData.skills?.technical || [],
-          soft: importedData.skills?.soft || [],
-        },
-        projects: importedData.projects || [],
-        certifications: importedData.certifications || [],
-      };
-      setResumeData(mergedData);
+      const normalizedData = normalizeImportedData(importedData);
+      setResumeData(normalizedData);
       setJsonInput("");
       setShowImportModal(false);
     } catch {
@@ -225,8 +276,8 @@ export default function App() {
                 key={i}
                 onClick={() => setCurrentStep(i)}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition ${active
-                    ? "bg-blue-50 text-blue-700 font-semibold"
-                    : "text-gray-700 hover:bg-gray-100"
+                  ? "bg-blue-50 text-blue-700 font-semibold"
+                  : "text-gray-700 hover:bg-gray-100"
                   }`}
               >
                 <Icon className={`w-5 h-5`} />
@@ -302,8 +353,8 @@ export default function App() {
               disabled={!isFormValid() || isGenerating}
               onClick={handleDownloadPDF}
               className={`flex items-center gap-2 px-6 py-3 rounded-lg font-semibold ${isFormValid()
-                  ? "bg-blue-600 text-white hover:bg-blue-700"
-                  : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                ? "bg-blue-600 text-white hover:bg-blue-700"
+                : "bg-gray-300 text-gray-500 cursor-not-allowed"
                 }`}
             >
               <Download className="w-4 h-4" />
