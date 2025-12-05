@@ -17,6 +17,10 @@ import {
   Linkedin,
   FileText,
   AlertCircle,
+  ZoomIn,
+  ZoomOut,
+  RotateCcw,
+  Maximize,
 } from "lucide-react";
 
 import { generateLatexStylePDF } from "./utils/pdfGenerator";
@@ -50,6 +54,10 @@ export default function App() {
   const [linkedinUrl, setLinkedinUrl] = useState("");
   const [isParsingResume, setIsParsingResume] = useState(false);
   const [isImportingLinkedIn, setIsImportingLinkedIn] = useState(false);
+
+  // Preview State
+  const [zoom, setZoom] = useState(0.55); // Default scale to fit sidebar
+  const [isFullScreen, setIsFullScreen] = useState(false);
 
   const fileInputRef = useRef(null);
   const resumeFileInputRef = useRef(null);
@@ -412,15 +420,56 @@ export default function App() {
       {/* ------------------------------------------------------------
         LIVE PREVIEW
        ------------------------------------------------------------ */}
-      <aside className="w-[450px] border-l bg-gray-100 flex flex-col">
-        <div className="flex-1 overflow-y-auto p-6 flex justify-center">
-          <div className="bg-white shadow-2xl min-h-[500px] w-full">
+      <aside className="w-[450px] border-l bg-gray-100/50 flex flex-col relative">
+        {/* Floating Zoom Controls */}
+        <div className="absolute bottom-24 right-6 flex flex-col gap-2 z-30 pointer-events-auto">
+          <div className="bg-white/90 backdrop-blur shadow-lg border border-gray-200 rounded-xl p-1.5 flex flex-col gap-1">
+            <button
+              onClick={() => setZoom((z) => Math.min(z + 0.1, 1.5))}
+              className="p-2 hover:bg-blue-50 text-gray-600 hover:text-blue-600 rounded-lg transition-colors"
+              title="Zoom In"
+            >
+              <ZoomIn className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setZoom((z) => Math.max(z - 0.1, 0.3))}
+              className="p-2 hover:bg-blue-50 text-gray-600 hover:text-blue-600 rounded-lg transition-colors"
+              title="Zoom Out"
+            >
+              <ZoomOut className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setZoom(0.55)}
+              className="p-2 hover:bg-blue-50 text-gray-600 hover:text-blue-600 rounded-lg transition-colors"
+              title="Reset Zoom"
+            >
+              <RotateCcw className="w-4 h-4" />
+            </button>
+          </div>
+          <button
+            onClick={() => setIsFullScreen(true)}
+            className="bg-gray-900 text-white p-3 rounded-xl shadow-lg hover:bg-black transition-all hover:scale-105"
+            title="Full Screen"
+          >
+            <Maximize className="w-4 h-4" />
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-auto bg-gray-100/50 p-8 flex justify-center items-start relative custom-scrollbar">
+          <div
+            className="bg-white shadow-2xl transition-transform duration-200 ease-out origin-top"
+            style={{
+              width: "210mm",
+              minHeight: "297mm",
+              transform: `scale(${zoom})`,
+            }}
+          >
             <ResumePreview resumeData={resumeData} />
           </div>
         </div>
 
         {/* Action Bar */}
-        <div className="p-4 bg-white border-t flex gap-3 shadow-lg z-10">
+        <div className="p-4 bg-white border-t flex gap-3 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-20 relative">
           <button
             onClick={handlePreviewPDF}
             className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors"
@@ -442,6 +491,37 @@ export default function App() {
           </button>
         </div>
       </aside>
+
+      {/* ------------------------------------------------------------
+        FULL SCREEN MODAL
+       ------------------------------------------------------------ */}
+      {isFullScreen && (
+        <div className="fixed inset-0 z-50 bg-gray-900/95 flex flex-col h-screen animate-in fade-in duration-200">
+          <div className="h-16 flex items-center justify-between px-6 bg-gray-900 text-white border-b border-gray-800">
+            <div className="flex items-center gap-3">
+              <FileText className="w-5 h-5 text-blue-400" />
+              <h2 className="font-semibold text-lg tracking-tight">Full Screen Preview</h2>
+            </div>
+            <button
+              onClick={() => setIsFullScreen(false)}
+              className="p-2 hover:bg-gray-800 rounded-lg text-gray-400 hover:text-white transition-colors"
+            >
+              <X className="w-6 h-6" />
+            </button>
+          </div>
+
+          <div className="flex-1 overflow-auto flex justify-center p-12 bg-gray-900/50 custom-scrollbar backdrop-blur-sm">
+            <div className="shadow-2xl origin-top" style={{ width: "210mm", minHeight: "297mm", backgroundColor: "white" }}>
+              {/* Using a separate scale for fullscreen? Or just standard A4. 
+                      Standard A4 is readable on desktop. 
+                      We'll render it at scale 1 or slightly larger if needed.
+                      For now, regular size (no transform) is essentially "100%".
+                  */}
+              <ResumePreview resumeData={resumeData} />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ------------------------------------------------------------
         IMPORT MODAL
