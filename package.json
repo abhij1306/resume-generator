@@ -10,7 +10,7 @@
     "deploy": "gh-pages -d dist",
     "lint": "eslint .",
     "preview": "vite preview",
-    "homepage": "https:abhij1306.github.io/resume-generator/"
+    "homepage": "https://abhij1306.github.io/resume-generator/"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
