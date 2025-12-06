@@ -1,48 +1,26 @@
 import mammoth from 'mammoth'
 import * as pdfjsLib from 'pdfjs-dist'
+import { parseResumeWithAI } from './aiResumeParser'
+import pdfjsWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?url'
 
-// Extract text from PDF
+// Set worker source
+pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker
+
 export async function extractTextFromPDF(file) {
     const arrayBuffer = await file.arrayBuffer()
-    const typedArray = new Uint8Array(arrayBuffer)
-    
-    try {
-        // Configure pdfjs worker for browser compatibility
-        // Use a stable CDN worker URL
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://unpkg.com/pdfjs-dist@5.4.449/build/pdf.worker.min.js'
-        
-        console.log('Using worker source:', pdfjsLib.GlobalWorkerOptions.workerSrc)
-        
-        // Load PDF with proper configuration
-        const loadingTask = pdfjsLib.getDocument({
-            data: typedArray,
-            useSystemFonts: true,
-            verbosity: 0 // Reduce console noise
-        })
-        
-        const pdf = await loadingTask.promise
-        let fullText = ''
-        
-        console.log('PDF loaded, number of pages:', pdf.numPages)
-        
-        // Extract text from each page
-        for (let i = 1; i <= pdf.numPages; i++) {
-            console.log('Processing page', i)
-            const page = await pdf.getPage(i)
-            const textContent = await page.getTextContent()
-            const pageText = textContent.items.map(item => item.str).join(' ')
-            fullText += pageText + '\n\n'
-        }
-        
-        console.log('PDF text extraction complete, total length:', fullText.length)
-        return fullText
-    } catch (error) {
-        console.error('PDF parsing error:', error)
-        throw new Error('Failed to parse PDF file. Please try a different PDF or use DOCX/TXT format.')
+    const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer })
+    const pdf = await loadingTask.promise
+    let fullText = ''
+
+    for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i)
+        const textContent = await page.getTextContent()
+        const strings = textContent.items.map(item => item.str)
+        fullText += strings.join(' ') + '\n'
     }
+    return fullText
 }
 
-// Extract text from DOCX
 export async function extractTextFromDOCX(file) {
     const arrayBuffer = await file.arrayBuffer()
     const result = await mammoth.extractRawText({ arrayBuffer })
@@ -234,7 +212,7 @@ export async function extractResumeFromFile(file) {
 
     try {
         console.log('Extracting resume from file:', fileName, fileType)
-        
+
         if (fileType === 'application/pdf' || fileName.endsWith('.pdf')) {
             console.log('Processing PDF file...')
             text = await extractTextFromPDF(file)
@@ -250,6 +228,16 @@ export async function extractResumeFromFile(file) {
         }
 
         console.log('Raw text preview:', text.substring(0, 200))
+
+        // Try AI parsing first
+        const aiResult = await parseResumeWithAI(text)
+        if (aiResult) {
+            console.log('✅ Using AI-parsed resume data')
+            return aiResult
+        }
+
+        // Fallback to regex parsing
+        console.log('ℹ️ Falling back to regex parsing')
         return parseResumeText(text)
     } catch (error) {
         console.error('Error extracting resume:', error)

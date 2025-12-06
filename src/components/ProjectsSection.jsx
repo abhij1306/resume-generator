@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { generateId } from "../utils/uuid";
 import {
     DndContext,
     closestCenter,
@@ -42,7 +43,7 @@ export function ProjectsSection({ projects, setResumeData }) {
     };
 
     const addProject = () => {
-        const newId = crypto.randomUUID();
+        const newId = generateId();
         const newProject = {
             id: newId,
             name: "",
@@ -79,46 +80,6 @@ export function ProjectsSection({ projects, setResumeData }) {
     // ------------------------------------------------------------------
     //  CARD SUB-COMPONENT
     // ------------------------------------------------------------------
-    const ProjectCard = ({ proj, onEdit, onDelete }) => (
-        <div className="group neumorphic-card p-6 transition-all border-transparent hover:border-[rgba(158,232,200,0.3)] cursor-pointer">
-            <div className="flex justify-between items-start">
-                <div className="flex-1">
-                    <h4 className="font-bold text-text-primary text-body">
-                        {proj.name || "(No Project Name)"}
-                    </h4>
-                    <div className="text-text-secondary font-medium text-body">
-                        {proj.technologies}
-                    </div>
-                    {/* Preview Description */}
-                    {proj.description && (
-                        <div className="mt-4 text-body text-text-secondary ml-5 opacity-80" style={{ whiteSpace: 'pre-line' }}>
-                            {/* Just show first couple of lines if it's bulleted manually or by ResponsibilityList */}
-                            {proj.description.split('\n').slice(0, 2).map((line, i) => (
-                                <div key={i} className="line-clamp-1">• {line}</div>
-                            ))}
-                            {proj.description.split('\n').length > 2 && <div className="text-xs italic text-text-secondary mt-2">+ more</div>}
-                        </div>
-                    )}
-                </div>
-
-                <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity ml-4">
-                    <button
-                        onClick={(e) => { e.stopPropagation(); onEdit(proj.id); }}
-                        className="p-2 text-text-secondary hover:text-accent-mint hover:bg-bg-secondary rounded-lg transition-colors"
-                    >
-                        <Edit2 className="w-4 h-4" />
-                    </button>
-                    <button
-                        onClick={(e) => { e.stopPropagation(); onDelete(proj.id); }}
-                        className="p-2 text-text-secondary hover:text-red-500 hover:bg-bg-secondary rounded-lg transition-colors"
-                    >
-                        <Trash2 className="w-4 h-4" />
-                    </button>
-                </div>
-            </div>
-        </div>
-    );
-
     return (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
             {/* ADD BUTTON */}

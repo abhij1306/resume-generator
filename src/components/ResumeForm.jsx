@@ -1,4 +1,5 @@
 import { Plus, Trash2 } from "lucide-react";
+import { generateId } from "../utils/uuid";
 import { ExperienceSection } from "./ExperienceSection";
 import { ProjectsSection } from "./ProjectsSection";
 import { SkillsSection } from "./SkillsSection";
@@ -50,7 +51,7 @@ export default function ResumeForm({
   const addItem = (section, template) => {
     setResumeData((prev) => ({
       ...prev,
-      [section]: [...prev[section], { ...template, id: crypto.randomUUID() }],
+      [section]: [{ ...template, id: generateId() }, ...prev[section]],
     }));
   };
 
@@ -86,7 +87,7 @@ export default function ResumeForm({
           <div className="autosave-dot"></div>
           <span>Saved</span>
         </div>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Input
             label="Full Name *"
@@ -161,24 +162,24 @@ export default function ResumeForm({
       <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
         <div className="flex justify-between items-center">
           <h3 className="text-h2 text-text-primary">Education</h3>
-
-          <button
-            onClick={() =>
-              addItem("education", {
-                degree: "",
-                institution: "",
-                location: "",
-                gpa: "",
-                startDate: "",
-                endDate: "",
-              })
-            }
-            className="flex items-center gap-2 px-4 py-2 bg-accent-mint text-text-primary rounded-xl font-bold shadow-mint-glow hover:bg-teal-400 transition-colors"
-          >
-            <Plus className="w-4 h-4" />
-            Add Education
-          </button>
         </div>
+
+        <button
+          onClick={() =>
+            addItem("education", {
+              degree: "",
+              institution: "",
+              location: "",
+              gpa: "",
+              startDate: "",
+              endDate: "",
+            })
+          }
+          className="w-full py-4 border-2 border-dashed border-[rgba(158,232,200,0.3)] rounded-2xl flex items-center justify-center gap-2 text-[#9EE8C8] font-semibold hover:bg-[#9EE8C8]/10 hover:border-[#9EE8C8] transition-all"
+        >
+          <Plus className="w-5 h-5" />
+          Add New Education
+        </button>
 
         {resumeData.education.map((edu, i) => (
           <div
@@ -258,14 +259,113 @@ export default function ResumeForm({
     );
 
   /* ---------------------------------------------------------------
+     CERTIFICATIONS
+  ----------------------------------------------------------------*/
+  if (activeSection === "certifications")
+    return (
+      <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
+        <div className="flex justify-between items-center">
+          <h3 className="text-h2 text-text-primary">Certifications</h3>
+        </div>
+
+        <button
+          onClick={() => addItem("certifications", { name: "", issuer: "", date: "" })}
+          className="w-full py-4 border-2 border-dashed border-[rgba(158,232,200,0.3)] rounded-2xl flex items-center justify-center gap-2 text-[#9EE8C8] font-semibold hover:bg-[#9EE8C8]/10 hover:border-[#9EE8C8] transition-all"
+        >
+          <Plus className="w-5 h-5" />
+          Add New Certification
+        </button>
+
+        {resumeData.certifications.map((cert, i) => (
+          <div key={i} className="p-8 neumorphic-card space-y-6">
+            <div className="flex justify-between items-center">
+              <h4 className="text-h2 text-text-primary">Certification {i + 1}</h4>
+              <button
+                onClick={() => removeItem("certifications", i)}
+                className="text-text-secondary hover:text-red-500 transition-colors"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Input
+                label="Certification Name"
+                value={cert.name}
+                onChange={(e) => updateItem("certifications", i, "name", e.target.value)}
+              />
+              <Input
+                label="Issuer"
+                value={cert.issuer}
+                onChange={(e) => updateItem("certifications", i, "issuer", e.target.value)}
+              />
+              <Input
+                label="Date"
+                value={cert.date}
+                onChange={(e) => updateItem("certifications", i, "date", e.target.value)}
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+
+  /* ---------------------------------------------------------------
+     LANGUAGES
+  ----------------------------------------------------------------*/
+  if (activeSection === "languages")
+    return (
+      <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
+        <div className="flex justify-between items-center">
+          <h3 className="text-h2 text-text-primary">Languages</h3>
+        </div>
+
+        <button
+          onClick={() => addItem("languages", { language: "", proficiency: "" })}
+          className="w-full py-4 border-2 border-dashed border-[rgba(158,232,200,0.3)] rounded-2xl flex items-center justify-center gap-2 text-[#9EE8C8] font-semibold hover:bg-[#9EE8C8]/10 hover:border-[#9EE8C8] transition-all"
+        >
+          <Plus className="w-5 h-5" />
+          Add New Language
+        </button>
+
+        {(resumeData.languages || []).map((lang, i) => (
+          <div key={i} className="p-8 neumorphic-card space-y-6">
+            <div className="flex justify-between items-center">
+              <h4 className="text-h2 text-text-primary">Language {i + 1}</h4>
+              <button
+                onClick={() => removeItem("languages", i)}
+                className="text-text-secondary hover:text-red-500 transition-colors"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Input
+                label="Language"
+                value={lang.language}
+                onChange={(e) => updateItem("languages", i, "language", e.target.value)}
+              />
+              <Input
+                label="Proficiency"
+                value={lang.proficiency}
+                onChange={(e) => updateItem("languages", i, "proficiency", e.target.value)}
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+
+  /* ---------------------------------------------------------------
      SKILLS
   ----------------------------------------------------------------*/
   if (activeSection === "skills")
     return (
-      <SkillsSection
-        skills={resumeData.skills}
-        setResumeData={setResumeData}
-      />
+      <div className="animate-in fade-in slide-in-from-right-4 duration-300">
+        <SkillsSection
+          skills={resumeData.skills}
+          setResumeData={setResumeData}
+        />
+      </div>
     );
 
   /* ---------------------------------------------------------------

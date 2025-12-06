@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import ResumeForm from "./components/ResumeForm";
 import ResumePreview from "./components/ResumePreview";
 import { CustomSection } from "./components/CustomSection";
@@ -13,16 +13,10 @@ import {
   GraduationCap,
   Award,
   FolderOpen,
-  Eye,
-  CheckCircle,
-  Linkedin,
-  FileText,
-  AlertCircle,
-  ZoomIn,
-  ZoomOut,
-  RotateCcw,
-  Maximize,
   Plus,
+  Languages,
+  FileText,
+  Maximize,
 } from "lucide-react";
 
 import {
@@ -42,12 +36,17 @@ import {
 
 import { generateLatexStylePDF } from "./utils/pdfGenerator";
 import { extractResumeFromFile } from "./utils/resumeParser";
+import { generateId } from "./utils/uuid";
 import { SortableItem } from "./components/SortableItem"; // Re-use generic wrapper if possible, or create SidebarItem
+import ErrorBoundary from "./components/ErrorBoundary";
 
 export default function App() {
   /** --------------------------
    * STATE
    ---------------------------*/
+  /* ---------------------------------------------------------------
+     STATE
+  ----------------------------------------------------------------*/
   const [resumeData, setResumeData] = useState({
     personal: {
       fullName: "",
@@ -61,31 +60,39 @@ export default function App() {
     education: [],
     experience: [],
     skills: { technical: [], soft: [] },
+    languages: [],
     certifications: [],
     projects: [],
     customSections: {}, // { id: { title: "Title", items: [text, text] } }
   });
 
-  // Default Order. Personal is handled separately as fixed header effectively, 
-  // but for sidebar nav we might want it first. 
-  // Let's make "Personal" fixed at index 0, and the rest sortable.
+  // Debounced state
+  const [debouncedResumeData, setDebouncedResumeData] = useState(resumeData);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedResumeData(resumeData);
+    }, 300);
+    return () => clearTimeout(handler);
+  }, [resumeData]);
+
+  // Section Order
   const [sectionOrder, setSectionOrder] = useState([
     "experience",
     "education",
     "skills",
+    "certifications",
+    "languages",
     "projects",
   ]);
 
-  const [currentStep, setCurrentStep] = useState(0); // 0 is Personal. 1..4 maps to sectionOrder indices.
+  const [currentStep, setCurrentStep] = useState(0);
   const [isGenerating, setIsGenerating] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
   const [jsonInput, setJsonInput] = useState("");
-  const [linkedinUrl, setLinkedinUrl] = useState("");
   const [isParsingResume, setIsParsingResume] = useState(false);
-  const [isImportingLinkedIn, setIsImportingLinkedIn] = useState(false);
 
   // Preview State
-  const [zoom, setZoom] = useState(0.45); // Default scale to fit sidebar
   const [isFullScreen, setIsFullScreen] = useState(false);
 
   const fileInputRef = useRef(null);
@@ -129,6 +136,10 @@ export default function App() {
         return resumeData.education.length > 0;
       case "skills":
         return resumeData.skills.technical.length > 0 || resumeData.skills.soft.length > 0;
+      case "certifications":
+        return resumeData.certifications.length > 0;
+      case "languages":
+        return resumeData.languages?.length > 0;
       case "projects":
         return resumeData.projects.length > 0;
       default:
@@ -149,10 +160,20 @@ export default function App() {
         return { icon: GraduationCap, label: "Education" };
       case "skills":
         return { icon: Award, label: "Skills" };
+      case "certifications":
+        return { icon: Award, label: "Certifications" };
+      case "languages":
+        return { icon: Languages, label: "Languages" };
       case "projects":
         return { icon: FolderOpen, label: "Projects" };
       default:
-        return { icon: null, label: "" }; // Or handle unknown sections
+        if (sectionId.startsWith("custom-")) {
+          return {
+            icon: FolderOpen,
+            label: resumeData.customSections[sectionId]?.title || "Custom Section",
+          };
+        }
+        return { icon: FolderOpen, label: "Unknown" };
     }
   };
 
@@ -173,6 +194,10 @@ export default function App() {
         return "Education";
       case "skills":
         return "Skills";
+      case "certifications":
+        return "Certifications";
+      case "languages":
+        return "Languages";
       case "projects":
         return "Projects";
       default:
@@ -208,18 +233,6 @@ export default function App() {
     setIsGenerating(false);
   };
 
-  const handleExportJSON = () => {
-    const blob = new Blob([JSON.stringify(resumeData, null, 2)], {
-      type: "application/json",
-    });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "resume.json";
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
   /** --------------------------
    * NORMALIZE IMPORTED DATA
    ---------------------------*/
@@ -252,7 +265,7 @@ export default function App() {
       startDate: exp.startDate || exp.start_date || exp.dates?.split("--")[0]?.trim() || "",
       endDate: exp.endDate || exp.end_date || exp.dates?.split("--")[1]?.trim() || "",
       responsibilities: exp.responsibilities || exp.bullets || (exp.description ? [exp.description] : []),
-      id: exp.id || crypto.randomUUID(), // Ensure ID for DnD
+      id: exp.id || generateId(), // Ensure ID for DnD
     }));
 
     // Normalize education
@@ -263,7 +276,7 @@ export default function App() {
       gpa: edu.gpa || "",
       startDate: edu.startDate || edu.start_date || edu.dates?.split("--")[0]?.trim() || "",
       endDate: edu.endDate || edu.end_date || edu.dates?.split("--")[1]?.trim() || "",
-      id: edu.id || crypto.randomUUID(),
+      id: edu.id || generateId(),
     }));
 
     // Normalize skills
@@ -308,7 +321,7 @@ export default function App() {
       experience: normalizedExperience,
       education: normalizedEducation,
       skills: normalizedSkills,
-      projects: projects.map(p => ({ ...p, id: p.id || crypto.randomUUID() })),
+      projects: projects.map(p => ({ ...p, id: p.id || generateId() })),
       certifications: normalizedCertifications,
     };
   };
@@ -500,7 +513,7 @@ export default function App() {
             onClick={() => {
               const title = prompt("Enter Section Title (e.g. Certifications, Languages):");
               if (title) {
-                const id = `custom-${crypto.randomUUID()}`;
+                const id = `custom-${generateId()}`;
                 setResumeData(prev => ({
                   ...prev,
                   customSections: {
@@ -524,7 +537,7 @@ export default function App() {
             className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-[#FFFFFF] text-[#6B7280] text-xs font-semibold rounded-xl shadow-neumorphic hover:text-[#222831] hover:scale-[1.02] transition-all"
           >
             <Upload className="w-4 h-4" />
-            IMPORT / EXPORT
+            Import Data
           </button>
         </div>
       </aside>
@@ -562,6 +575,7 @@ export default function App() {
               )}
               {!activeSection.startsWith('custom-') && (
                 <ResumeForm
+                  key="resume-form"
                   currentStep={currentStep} // Only for visual, can refactor
                   activeSection={activeSection}
                   resumeData={resumeData}
@@ -589,11 +603,13 @@ export default function App() {
           {/* Scrollable Preview Area */}
           <div className="flex-1 overflow-y-auto p-6 custom-scrollbar flex justify-center bg-[#F1F3F6]/50">
             {/* Preview Frame - No scaling needed since we set width to 360px */}
-            <div className="origin-top mt-8 shadow-preview-float rounded-sm">
-              <ResumePreview
-                resumeData={resumeData}
-                sectionOrder={sectionOrder}
-              />
+            <div className="flex-1 min-w-0">
+              <ErrorBoundary>
+                <ResumePreview
+                  resumeData={debouncedResumeData}
+                  sectionOrder={sectionOrder}
+                />
+              </ErrorBoundary>
             </div>
           </div>
 
@@ -644,31 +660,33 @@ export default function App() {
 
           <div className="flex-1 overflow-y-auto flex justify-center p-16 custom-scrollbar">
             <div className="shadow-[0_0_50px_rgba(0,0,0,0.5)]">
-              <ResumePreview
-                resumeData={resumeData}
-                sectionOrder={sectionOrder}
-              />
+              <ErrorBoundary>
+                <ResumePreview
+                  resumeData={debouncedResumeData}
+                  sectionOrder={sectionOrder}
+                />
+              </ErrorBoundary>
             </div>
           </div>
         </div>
       )}
 
       {/* ------------------------------------------------------------
-        IMPORT MODAL (Dark Theme)
+        IMPORT MODAL (Light Theme)
         ------------------------------------------------------------ */}
       {
         showImportModal && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center p-6 z-50 animate-fade-in">
-            <div className="glass-panel bg-[#1A2029]/90 border border-white/10 rounded-3xl max-w-2xl w-full p-8 shadow-2xl relative overflow-hidden">
+          <div className="fixed inset-0 bg-black/20 backdrop-blur-md flex items-center justify-center p-6 z-50 animate-fade-in">
+            <div className="glass-panel bg-white border border-gray-200 rounded-3xl max-w-2xl w-full p-8 shadow-2xl relative overflow-hidden">
 
               {/* Decor */}
-              <div className="absolute top-0 right-0 w-32 h-32 bg-[#A6EBCF] opacity-10 blur-[60px] rounded-full"></div>
+              <div className="absolute top-0 right-0 w-32 h-32 bg-teal-400 opacity-10 blur-[60px] rounded-full"></div>
 
               <div className="flex justify-between items-center mb-8 relative z-10">
-                <h2 className="text-2xl font-display font-bold text-white">Import Data</h2>
+                <h2 className="text-2xl font-display font-bold text-gray-900">Import Data</h2>
                 <button
                   onClick={() => setShowImportModal(false)}
-                  className="text-gray-400 hover:text-white transition-colors"
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
                 >
                   <X className="w-6 h-6" />
                 </button>
@@ -681,18 +699,18 @@ export default function App() {
                     pdfFileInputRef.current?.click();
                   }}
                   disabled={isParsingResume}
-                  className="w-full group flex items-start gap-5 p-5 rounded-2xl bg-white/5 border border-white/5 hover:border-[#9EE8C8] hover:bg-white/10 transition-all text-left disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full group flex items-start gap-5 p-5 rounded-2xl bg-gray-50 border border-gray-100 hover:border-teal-300 hover:bg-teal-50 transition-all text-left disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <div className="p-3 bg-red-500/20 text-red-400 rounded-xl group-hover:bg-[#9EE8C8] group-hover:text-[#222831] transition-colors">
+                  <div className="p-3 bg-red-100 text-red-500 rounded-xl group-hover:bg-teal-200 group-hover:text-teal-800 transition-colors">
                     <FileUp className="w-6 h-6" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-lg text-white group-hover:text-[#9EE8C8] transition-colors">Upload PDF Resume</h3>
-                    <p className="text-sm text-gray-400 mt-1">Extract data from PDF files</p>
+                    <h3 className="font-bold text-lg text-gray-900 group-hover:text-teal-700 transition-colors">Upload PDF Resume</h3>
+                    <p className="text-sm text-gray-500 mt-1">Extract data from PDF files</p>
                   </div>
                   {isParsingResume && (
                     <div className="absolute right-4 top-4">
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#9EE8C8]"></div>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-teal-500"></div>
                     </div>
                   )}
                 </button>
@@ -702,49 +720,42 @@ export default function App() {
                   onClick={() => {
                     resumeFileInputRef.current?.click();
                   }}
-                  className="w-full group flex items-start gap-5 p-5 rounded-2xl bg-white/5 border border-white/5 hover:border-[#9EE8C8] hover:bg-white/10 transition-all text-left"
+                  className="w-full group flex items-start gap-5 p-5 rounded-2xl bg-gray-50 border border-gray-100 hover:border-teal-300 hover:bg-teal-50 transition-all text-left"
                 >
-                  <div className="p-3 bg-blue-500/20 text-blue-400 rounded-xl group-hover:bg-[#9EE8C8] group-hover:text-[#222831] transition-colors">
+                  <div className="p-3 bg-blue-100 text-blue-500 rounded-xl group-hover:bg-teal-200 group-hover:text-teal-800 transition-colors">
                     <FileUp className="w-6 h-6" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-lg text-white group-hover:text-[#9EE8C8] transition-colors">Upload DOCX/TXT Resume</h3>
-                    <p className="text-sm text-gray-400 mt-1">Auto-fill from DOCX or TXT files</p>
+                    <h3 className="font-bold text-lg text-gray-900 group-hover:text-teal-700 transition-colors">Upload DOCX/TXT Resume</h3>
+                    <p className="text-sm text-gray-500 mt-1">Auto-fill from DOCX or TXT files</p>
                   </div>
                 </button>
 
-                {/* 2. Paste JSON */}
-                <div className="p-5 rounded-2xl bg-white/5 border border-white/5 hover:border-[#A6EBCF] transition-all focus-within:ring-1 focus-within:ring-[#A6EBCF]">
+                {/* 3. Paste JSON */}
+                <div className="p-5 rounded-2xl bg-gray-50 border border-gray-100 hover:border-teal-300 transition-all focus-within:ring-1 focus-within:ring-teal-300">
                   <div className="flex items-center gap-3 mb-4">
-                    <FileJson className="w-5 h-5 text-purple-400" />
-                    <span className="font-bold text-white">Paste JSON</span>
+                    <FileJson className="w-5 h-5 text-purple-500" />
+                    <span className="font-bold text-gray-900">Paste JSON</span>
                   </div>
                   <textarea
                     value={jsonInput}
                     onChange={(e) => setJsonInput(e.target.value)}
                     placeholder="Paste resume JSON data here..."
-                    className="w-full h-24 p-4 bg-[#0E1116] rounded-xl border border-white/10 text-sm text-gray-300 focus:outline-none focus:border-[#A6EBCF] resize-none font-mono tracking-tight"
+                    className="w-full h-24 p-4 bg-white rounded-xl border border-gray-200 text-sm text-gray-700 focus:outline-none focus:border-teal-300 resize-none font-mono tracking-tight"
                   />
                   <div className="mt-3 flex justify-end">
                     <button
                       onClick={handleImportJSON}
                       disabled={!jsonInput.trim()}
-                      className="px-5 py-2 bg-[#9EE8C8] text-[#222831] font-bold rounded-lg hover:bg-teal-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="px-5 py-2 bg-teal-400 text-gray-900 font-bold rounded-lg hover:bg-teal-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Import
                     </button>
+
                   </div>
                 </div>
 
-                <div className="pt-6 mt-4 border-t border-white/10 flex justify-center">
-                  <button
-                    onClick={handleExportJSON}
-                    className="text-sm text-gray-400 hover:text-[#9EE8C8] flex items-center gap-2 transition-colors"
-                  >
-                    <FileJson className="w-4 h-4" />
-                    Export Data as JSON
-                  </button>
-                </div>
+
               </div>
 
               {/* Hidden Input for Files */}

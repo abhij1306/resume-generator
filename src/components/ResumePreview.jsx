@@ -1,13 +1,13 @@
 import React from "react";
 import PreviewWrapper from "./PreviewWrapper";
 
-export default function ResumePreview({ resumeData, ...props }) {
-  const { personal, education, experience, skills, projects, certifications } =
+const ResumePreview = React.memo(({ resumeData, ...props }) => {
+  const { personal, education, experience, skills, projects, certifications, languages } =
     resumeData;
 
   const Section = ({ title, children }) => (
-    <div className="mb-8">
-      <h2 className="text-h2 text-text-primary border-b border-[rgba(0,0,0,0.08)] pb-3 mb-4 tracking-wide">
+    <div className="mb-6">
+      <h2 className="text-[14px] font-bold text-text-primary border-b border-[rgba(0,0,0,0.08)] pb-1 mb-3 uppercase tracking-wider">
         {title}
       </h2>
       {children}
@@ -34,25 +34,28 @@ export default function ResumePreview({ resumeData, ...props }) {
       case "experience":
         return experience.length > 0 && (
           <Section key={id} title="Professional Experience">
-            <div className="space-y-5">
+            <div className="space-y-4">
               {experience.map((exp, idx) => (
-                <div key={idx}>
-                  <div className="flex justify-between">
-                    <div>
-                      <p className="font-semibold text-text-primary text-body">
-                        {exp.title || "Role"}
-                      </p>
-                      <p className="text-text-secondary text-body">
-                        {exp.company || ""}
-                        {exp.location ? ` • ${exp.location}` : ""}
-                      </p>
-                    </div>
-                    <p className="text-text-secondary text-body whitespace-nowrap">
-                      {exp.startDate} – {exp.endDate || "Present"}
-                    </p>
+                <div key={idx} className="mb-4">
+                  <div className="flex justify-between items-baseline mb-1">
+                    <h3 className="font-bold text-base text-black">
+                      {exp.title || "Role"}{exp.company ? ` - ${exp.company}` : ""}
+                    </h3>
+                    {(exp.startDate || exp.endDate) && (
+                      <span className="text-sm text-gray-600 whitespace-nowrap ml-4">
+                        {exp.startDate} – {exp.endDate || "Present"}
+                      </span>
+                    )}
                   </div>
+
+                  {exp.location && (
+                    <div className="text-sm text-gray-600 mb-2 italic">
+                      {exp.location}
+                    </div>
+                  )}
+
                   {exp.responsibilities?.length > 0 && (
-                    <ul className="list-disc ml-6 mt-3 text-body text-text-primary space-y-2">
+                    <ul className="list-disc ml-5 text-sm text-black space-y-1 leading-relaxed">
                       {exp.responsibilities
                         .filter((r) => r && typeof r === "string" && r.trim())
                         .map((resp, j) => (
@@ -111,6 +114,34 @@ export default function ResumePreview({ resumeData, ...props }) {
                   <span className="text-text-secondary">{skills.soft.join(", ")}</span>
                 </div>
               )}
+            </div>
+          </Section>
+        );
+
+      case "certifications":
+        return certifications.length > 0 && (
+          <Section key={id} title="Certifications">
+            <ul className="list-disc ml-5 space-y-1">
+              {certifications.map((cert, idx) => (
+                <li key={idx} className="text-body text-text-primary">
+                  <span className="font-semibold">{cert.name}</span>
+                  {cert.issuer && <span className="text-text-secondary"> - {cert.issuer}</span>}
+                  {cert.date && <span className="text-text-secondary text-sm"> ({cert.date})</span>}
+                </li>
+              ))}
+            </ul>
+          </Section>
+        );
+
+      case "languages":
+        return languages?.length > 0 && (
+          <Section key={id} title="Languages">
+            <div className="flex flex-wrap gap-2">
+              {languages.map((lang, idx) => (
+                <span key={idx} className="px-3 py-1 bg-gray-100 rounded-full text-sm text-text-primary border border-gray-200">
+                  {lang.language} {lang.proficiency && <span className="text-text-secondary text-xs">({lang.proficiency})</span>}
+                </span>
+              ))}
             </div>
           </Section>
         );
@@ -196,11 +227,11 @@ export default function ResumePreview({ resumeData, ...props }) {
         style={{ fontFamily: "Inter, sans-serif" }}
       >
         {/* HEADER */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold tracking-tight text-text-primary">
+        <div className="text-center mb-6">
+          <h1 className="text-[24px] font-bold tracking-tight text-text-primary uppercase">
             {personal.fullName}
           </h1>
-  
+
           <div className="flex flex-wrap justify-center gap-4 text-body text-text-secondary mt-4">
             {personal.email && <span>{personal.email}</span>}
             {personal.phone && <span>{personal.phone}</span>}
@@ -227,7 +258,7 @@ export default function ResumePreview({ resumeData, ...props }) {
             )}
           </div>
         </div>
-  
+
         {/* SUMMARY (Fixed position typical for resumes) */}
         {personal.summary && (
           <Section title="Professional Summary">
@@ -239,21 +270,10 @@ export default function ResumePreview({ resumeData, ...props }) {
         {/* DYNAMIC SECTIONS */}
         {finalSectionOrder.map(id => renderSection(id))}
 
-        {/* CERTIFICATIONS (Legacy/Extra) */}
-        {certifications.length > 0 && (
-          <Section title="Certifications">
-            <ul className="list-disc ml-6 text-body space-y-2">
-              {certifications.map((cert, idx) => (
-                <li key={idx}>
-                  <span className="font-semibold text-text-primary">{cert.name}</span>
-                  {cert.issuer && <span className="text-text-secondary"> — {cert.issuer}</span>}
-                  {cert.date && <span className="text-text-secondary"> ({cert.date})</span>}
-                </li>
-              ))}
-            </ul>
-          </Section>
-        )}
+
       </div>
     </PreviewWrapper>
   );
-}
+});
+
+export default ResumePreview;
